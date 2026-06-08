@@ -1,0 +1,121 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+/* ── Table ────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 0 12px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th:first-child { padding-left: 0; }
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.table td:first-child { padding-left: 0; }
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+
+/* ── Cells ────────────────────────────────────── */
+.time {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.score {
+  display: inline-block;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 32px;
+  text-align: center;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+}
+
+.scoreSafe     { background: var(--safe-dim);   color: var(--safe);   }
+.scoreWarn     { background: var(--warn-dim);   color: var(--warn);   }
+.scoreElevated { background: var(--elev-dim);   color: var(--elev);   }
+.scoreDanger   { background: var(--danger-dim); color: var(--danger); }
+
+.action {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.actionPause   { background: var(--danger-glow); color: var(--danger); border: 1px solid rgba(255,59,92,0.2); }
+.actionUnpause { background: var(--safe-glow);   color: var(--safe);   border: 1px solid rgba(15,202,130,0.2); }
+.actionTighten { background: var(--warn-glow);   color: var(--warn);   border: 1px solid rgba(245,166,35,0.2); }
+.actionNotify  { background: var(--accent-dim);  color: var(--accent); border: 1px solid rgba(61,126,248,0.2); }
+.actionLog     { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
+
+.reason {
+  color: var(--text-secondary);
+  max-width: 360px;
+}
+
+.state {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px 0;
+}

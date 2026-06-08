@@ -108,6 +108,11 @@ async function decide() {
 // ── Health / status API ────────────────────────────────────────────────────
 const app = express();
 
+app.use((_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', guardianEnabled, latestScore });
 });

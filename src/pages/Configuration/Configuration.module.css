@@ -1,0 +1,177 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pageHeader { margin-bottom: 4px; }
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ── Status card ──────────────────────────────── */
+.statusRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.statusDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.addressLine {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+/* ── Thresholds ───────────────────────────────── */
+.thresholdIntro {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.thresholds {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.threshold {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thresholdHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.thresholdScore {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.thresholdTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.thresholdFill {
+  height: 100%;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.thresholdLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: 100px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.thresholdDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-left: 44px;
+  line-height: 1.5;
+}
+
+/* ── State grid ───────────────────────────────── */
+.stateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stateItem {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stateLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.stateValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Permission objects ───────────────────────── */
+.permNote {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.permGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.permRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.permLabel {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 200px;
+  font-weight: 500;
+  padding-top: 1px;
+}
+
+.permId {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--accent);
+  word-break: break-all;
+}
