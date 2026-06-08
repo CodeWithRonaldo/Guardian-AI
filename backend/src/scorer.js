@@ -8,7 +8,7 @@ const WEIGHTS = {
   oracleStale:     20,  // Pyth publish_time > 30s ago
   poolDrop20:      35,  // Pool balance dropped >20% since last poll
   poolDrop5:       15,  // Pool balance dropped 5-20%
-  poolAbsLow:      35,  // Pool balance is critically low in absolute terms (<1% of baseline)
+  poolAbsLow:      90,  // Pool balance critically low (<1% of baseline) — pause-level on its own
   alreadyPaused:   10,  // Protocol paused flag already set on-chain
 };
 
