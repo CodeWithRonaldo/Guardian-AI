@@ -19,8 +19,7 @@ function arcPath(score) {
   if (score <= 0) return '';
   const start = { x: CX - RADIUS, y: CY };
   const end   = polarToCartesian(Math.min(score, 99.99));
-  const large = score > 50 ? 1 : 0;
-  return `M ${start.x} ${start.y} A ${RADIUS} ${RADIUS} 0 ${large} 1 ${end.x} ${end.y}`;
+  return `M ${start.x} ${start.y} A ${RADIUS} ${RADIUS} 0 0 1 ${end.x} ${end.y}`;
 }
 
 function riskColour(score) {

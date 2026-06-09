@@ -383,7 +383,7 @@ export default function Configuration() {
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function ThresholdSlider({ label, description, colour, value, min, max, error, onChange }) {
-  const fillPct = ((value - 1) / 98) * 100;
+  const fillPct = ((value - min) / (max - min)) * 100;
   return (
     <div className={styles.sliderBlock}>
       <div className={styles.sliderHeader}>
