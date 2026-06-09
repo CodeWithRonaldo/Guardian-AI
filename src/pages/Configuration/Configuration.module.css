@@ -19,13 +19,15 @@
   margin-top: 3px;
 }
 
-/* ── Status card ──────────────────────────────── */
-.statusRow {
+/* ── Guardian toggle card ─────────────────────────── */
+.toggleRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
 }
+
+.toggleInfo { flex: 1; }
 
 .statusDesc {
   font-size: 13px;
@@ -45,72 +47,402 @@
   word-break: break-all;
 }
 
-/* ── Thresholds ───────────────────────────────── */
-.thresholdIntro {
+.toggleError {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: 8px;
+}
+
+.toggleRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.connectHint {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  max-width: 160px;
+}
+
+.btnToggle {
+  border: none;
+  border-radius: var(--r-md);
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.btnToggle:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnToggle:not(:disabled):hover { opacity: 0.85; }
+
+.btnToggleDisable {
+  background: var(--danger-glow);
+  color: var(--danger);
+  border: 1px solid rgba(255,59,92,0.3);
+}
+
+.btnToggleEnable {
+  background: var(--safe-glow);
+  color: var(--safe);
+  border: 1px solid rgba(15,202,130,0.3);
+}
+
+/* ── Save row (card action area) ──────────────────── */
+.saveRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.savedMsg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--safe);
+}
+
+.errorMsg {
+  font-size: 12px;
+  color: var(--danger);
+  max-width: 200px;
+  text-align: right;
+}
+
+.btnSave {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.btnSave:hover:not(.btnDisabled) { opacity: 0.85; }
+.btnDisabled { opacity: 0.4; cursor: not-allowed; }
+
+.btnReset {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btnReset:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+/* ── Section intro ────────────────────────────────── */
+.sectionIntro {
   font-size: 13px;
   color: var(--text-secondary);
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   line-height: 1.6;
 }
 
-.thresholds {
+/* ── Sliders ──────────────────────────────────────── */
+.sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+
+.sliderBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sliderHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sliderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sliderLabel {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sliderDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 480px;
+}
+
+.sliderNumber {
+  width: 60px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  padding: 6px 8px;
+  flex-shrink: 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.sliderNumber:focus { border-color: var(--accent); }
+.sliderNumber::-webkit-outer-spin-button,
+.sliderNumber::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sliderNumber[type=number] { -moz-appearance: textfield; }
+
+.sliderTrackWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sliderInput {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    to right,
+    var(--fill) 0%,
+    var(--fill) var(--fill-pct),
+    var(--bg-elevated) var(--fill-pct),
+    var(--bg-elevated) 100%
+  );
+}
+
+.sliderInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--fill);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.15s;
+}
+
+.sliderInput::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+.sliderInput::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--fill);
+  cursor: pointer;
+}
+
+.sliderTicks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.sliderTick {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.sliderError {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 2px;
+}
+
+/* ── Range summary bar ────────────────────────────── */
+.rangeSummary {
+  display: flex;
+  gap: 3px;
+  height: 48px;
+  align-items: stretch;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.rangeBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+  min-width: 0;
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  overflow: hidden;
+}
+
+.rangeBarFill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-sm);
+}
+
+.rangeBarLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.rangeBarRange {
+  font-size: 10px;
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Action settings ──────────────────────────────── */
+.actionSettings {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.threshold {
+.actionField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.actionFieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.actionFieldTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.actionFieldDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.bpsInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.bpsInput {
+  width: 72px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--elev);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  padding: 7px 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.bpsInput:focus { border-color: var(--elev); }
+.bpsInput::-webkit-outer-spin-button,
+.bpsInput::-webkit-inner-spin-button { -webkit-appearance: none; }
+.bpsInput[type=number] { -moz-appearance: textfield; }
+
+.bpsUnit {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.bpsPct {
+  font-size: 12px;
+  color: var(--elev);
+  font-weight: 600;
+  min-width: 28px;
+}
+
+/* ── Webhook ──────────────────────────────────────── */
+.webhookField {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.thresholdHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.thresholdScore {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 18px;
-  font-weight: 700;
-  width: 32px;
-  flex-shrink: 0;
-}
-
-.thresholdTrack {
-  flex: 1;
-  height: 6px;
-  background: var(--bg-elevated);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.thresholdFill {
-  height: 100%;
-  border-radius: 3px;
-  opacity: 0.7;
-}
-
-.thresholdLabel {
+.webhookLabel {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  width: 100px;
-  text-align: right;
-  flex-shrink: 0;
 }
 
-.thresholdDesc {
+.webhookInput {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.webhookInput::placeholder { color: var(--text-muted); }
+.webhookInput:focus { border-color: var(--accent); }
+
+.fieldError {
+  font-size: 11px;
+  color: var(--danger);
+}
+
+.webhookHint {
   font-size: 12px;
   color: var(--text-muted);
-  padding-left: 44px;
   line-height: 1.5;
 }
 
-/* ── State grid ───────────────────────────────── */
+/* ── State grid ───────────────────────────────────── */
 .stateGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -141,7 +473,7 @@
   color: var(--text-primary);
 }
 
-/* ── Permission objects ───────────────────────── */
+/* ── Permission objects ───────────────────────────── */
 .permNote {
   font-size: 13px;
   color: var(--text-secondary);

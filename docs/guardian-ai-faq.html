@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuardianAI — Expected Questions & Answers</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1f2e;
+      background: #fff;
+      padding: 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: #0f1623;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f1623;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .header-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ── Category headers ── */
+    .category {
+      margin-bottom: 36px;
+    }
+
+    .category-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+
+    .category-label.technical  { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+    .category-label.product    { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+    .category-label.business   { background: #fefce8; border-color: #fde68a; color: #b45309; }
+    .category-label.tricky     { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+
+    /* ── Q&A Cards ── */
+    .qa-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .question {
+      background: #f8fafc;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #0f1623;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .q-icon {
+      width: 20px;
+      height: 20px;
+      background: #3d7ef8;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .answer {
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.7;
+    }
+
+    .answer p { margin-bottom: 8px; }
+    .answer p:last-child { margin-bottom: 0; }
+
+    code {
+      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      background: #f1f5f9;
+      color: #3d7ef8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    strong { color: #0f1623; }
+
+    /* ── Callout ── */
+    .callout {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin: 12px 0 4px;
+    }
+
+    .callout p {
+      color: #991b1b;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .callout.blue {
+      background: #eff6ff;
+      border-color: #3d7ef8;
+    }
+
+    .callout.blue p { color: #1e40af; }
+
+    .callout strong { color: inherit; }
+
+    /* ── Key point highlight ── */
+    .key-point {
+      background: #0f1623;
+      color: #e2eaf6;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 10px 0 4px;
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      margin-top: 48px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 32px; }
+      .qa-card { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⬡</div>
+      <div>
+        <div class="logo-name">GuardianAI</div>
+        <div class="logo-sub">Autonomous Risk Guardian · Sui Blockchain</div>
+      </div>
+    </div>
+    <p class="header-desc">
+      Expected questions from judges and your team — with prepared answers.
+      The last section covers the two hardest questions that trip most teams up.
+    </p>
+  </div>
+
+  <!-- SECTION 1: Technical -->
+  <div class="category">
+    <div class="category-label technical">⚙ Technical — Judges who know Sui / Move</div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What stops the agent from doing more than it's supposed to?
+      </div>
+      <div class="answer">
+        <p>
+          Move's type system. The agent can only call functions that take <code>&GuardianCap</code>
+          as a parameter. Those functions are explicitly written by the protocol team — nobody else
+          can add them. The blockchain rejects any other call <strong>at the VM level</strong>,
+          not in application logic. There is no way to bypass it in code.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What if GuardianAI gets hacked or the agent wallet is compromised?
+      </div>
+      <div class="answer">
+        <p>
+          The protocol team holds an <code>AdminCap</code>. One transaction from their wallet
+          calls <code>cap::disable()</code> and the agent loses all permissions instantly.
+        </p>
+        <p>
+          Even in a worst-case compromise, the damage is limited to whatever the
+          <code>GuardianCap</code> was scoped to — which is only pause and tighten LTV.
+          The agent <strong>cannot withdraw funds, cannot change ownership, cannot do anything
+          outside that narrow scope.</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        Can the agent stop a flash loan attack?
+      </div>
+      <div class="answer">
+        <p>
+          No — and we don't claim it can. Flash loans happen within a single atomic transaction.
+          By the time any off-chain engine sees it, it has already settled on-chain.
+        </p>
+        <p>
+          What the agent stops is <strong>multi-transaction attacks</strong> and the
+          <strong>aftermath of single-transaction exploits</strong> — like a pool balance
+          that craters after an exploit, or a price oracle that gets manipulated across
+          several blocks. The Cetus exploit involved ongoing drain activity that an
+          autonomous agent could have halted within seconds.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        Why not use on-chain automation instead of an off-chain engine?
+      </div>
+      <div class="answer">
+        <p>
+          Pyth price feeds, TWAP calculations, and anomaly detection require comparing
+          data over time from external APIs. You cannot run a loop that polls Pyth's
+          Hermes API from inside a Move contract.
+        </p>
+        <p>
+          The off-chain engine is what gives the system real-world signal awareness.
+          The on-chain part only executes — it never decides. That separation is intentional
+          and is how all serious DeFi monitoring infrastructure works.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What data sources does the risk engine use?
+      </div>
+      <div class="answer">
+        <p>Three sources, all verifiable:</p>
+        <p>
+          <strong>1. Pyth Hermes API</strong> — SUI/USD price feed, polled every 3 seconds.
+          Checks spot price deviation from a rolling TWAP and oracle publish timestamp staleness.
+        </p>
+        <p>
+          <strong>2. Sui RPC object polling</strong> — reads the Protocol shared object every
+          4 seconds for pool balance, LTV ratio, and paused state.
+        </p>
+        <p>
+          <strong>3. On-chain ActionLog</strong> — shared object that records every guardian
+          action permanently. Walrus stores the full signal context for each entry.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Product -->
+  <div class="category">
+    <div class="category-label product">◈ Product — Judges focused on real-world value</div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What's the real difference from Hypernative or Chainalysis?
+      </div>
+      <div class="answer">
+        <p>
+          They detect and alert. A human still has to see the alert, understand it, decide
+          what to do, and act. That chain takes <strong>minutes at best</strong>.
+        </p>
+        <p>
+          GuardianAI closes the loop. The response is autonomous and on-chain.
+          No human in the critical window. That is the missing piece — not better detection,
+          faster response.
+        </p>
+        <div class="key-point">
+          "Hypernative saw the Cetus exploit. They sent an alert. $60M moved to Ethereum
+          before humans could coordinate a response. GuardianAI would have paused the
+          protocol in the same 4-second window the attacker was operating in."
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What protocols would actually use this?
+      </div>
+      <div class="answer">
+        <p>
+          Any Sui DeFi protocol that holds user funds — lending protocols like
+          <strong>Suilend</strong> and <strong>Navi</strong>, DEXs like
+          <strong>Cetus</strong> and <strong>Bluefin</strong>.
+        </p>
+        <p>
+          The proof point is the Cetus exploit (October 2025) — $60M drained before
+          humans could respond. Every protocol team on Sui watched that happen and
+          thought "that could be us." GuardianAI is the answer to that fear.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        How do protocol teams trust you with this capability?
+      </div>
+      <div class="answer">
+        <p>They don't have to trust us broadly. Three reasons:</p>
+        <p>
+          <strong>1. Narrow scope.</strong> They define exactly which functions the agent
+          can call. If they only expose <code>pause_swaps</code>, that's all it can do.
+        </p>
+        <p>
+          <strong>2. Full control.</strong> They keep the AdminCap. Revoke in one transaction,
+          any time, for any reason.
+        </p>
+        <p>
+          <strong>3. Full transparency.</strong> Every action is permanently logged on-chain
+          with the reasoning. Full signal context on Walrus. No black box.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        Why does this need to be on Sui specifically?
+      </div>
+      <div class="answer">
+        <p>
+          Two reasons that are fundamental to the design, not marketing:
+        </p>
+        <p>
+          <strong>Move capability objects.</strong> On Ethereum, giving an AI agent
+          on-chain permissions requires proxy contracts, multisigs, and governance delays —
+          each adding its own attack surface. On Sui, a capability object is enforced by
+          the VM's type system. Clean, composable, and safe by construction.
+        </p>
+        <p>
+          <strong>Sub-second finality.</strong> Sui confirms transactions in under a second.
+          The agent can detect and respond within the same few-second window an attacker
+          is operating in. On Ethereum with 12-second block times, that window is gone
+          before your transaction even lands.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Business -->
+  <div class="category">
+    <div class="category-label business">$ Business — Judges focused on viability</div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        How do you make money?
+      </div>
+      <div class="answer">
+        <p>Three-tier subscription model per protocol:</p>
+        <p>
+          <strong>Level 1 — Monitor Only:</strong> Free. No capability transfer required.
+          Protocol gets the live risk score dashboard and "Protected by GuardianAI" badge.
+          Builds trust before asking for anything.
+        </p>
+        <p>
+          <strong>Level 2 — Single Action:</strong> Paid monthly subscription. Agent can
+          pause the protocol. One circuit breaker function.
+        </p>
+        <p>
+          <strong>Level 3 — Full Guardian:</strong> Higher tier. Multiple circuit breakers,
+          LTV tightening, full autonomous response capability.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What's stopping a big protocol from building this themselves?
+      </div>
+      <div class="answer">
+        <p>
+          They could — but the risk engine, Pyth integration, scoring logic, and
+          audit infrastructure are generic infrastructure that every protocol needs.
+          Building it yourself is months of work that doesn't differentiate your core product.
+        </p>
+        <p>
+          This is the same reason teams use Hypernative instead of building their own
+          monitoring. Security infrastructure is a shared service, not a competitive advantage.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Hard Questions -->
+  <div class="category">
+    <div class="category-label tricky">⚠ The Two Hardest Questions</div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        What if the risk score is wrong and the agent pauses a healthy protocol?
+      </div>
+      <div class="answer">
+        <p>
+          Two answers, and both matter:
+        </p>
+        <p>
+          <strong>First — false positives are recoverable.</strong> The protocol team can
+          unpause in one click using their AdminCap. A brief incorrect pause costs users
+          a few minutes of downtime. An undetected exploit costs them everything.
+          The asymmetry is clear.
+        </p>
+        <p>
+          <strong>Second — the scoring is designed conservatively.</strong> A single minor
+          signal doesn't cross the pause threshold (score 85). Multiple signals have to fire
+          together. A price deviation alone scores 30. Oracle staleness alone scores 20.
+          It takes a combination of anomalies — the pattern of a real attack — to trigger
+          an autonomous pause.
+        </p>
+        <div class="callout">
+          <p>
+            <strong>The frame to use:</strong> "Would you rather have a protocol that
+            occasionally pauses for 2 minutes on a false positive, or one that stays open
+            during a real exploit and loses $60M?"
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="question">
+        <span class="q-icon">Q</span>
+        This is just rule-based logic — where is the AI?
+      </div>
+      <div class="answer">
+        <p>
+          The risk scoring engine is rule-based — we say that clearly and don't hide it.
+          The "AI" in GuardianAI refers to the autonomous decision-making loop, not a
+          trained model.
+        </p>
+        <p>
+          The honest answer: a well-calibrated rule-based system that fires in 4 seconds
+          is more valuable than an ML model that takes 30 seconds to produce a probability.
+          Speed is the entire point.
+        </p>
+        <p>
+          The architecture is designed so that a real ML model — anomaly detection,
+          pattern recognition trained on historical exploit signatures — can replace the
+          scoring engine without changing anything else. The interface is the same.
+          That's the roadmap.
+        </p>
+        <div class="callout blue">
+          <p>
+            <strong>Don't apologise for the rule-based approach.</strong> Own it.
+            "We chose correctness and speed over complexity. The rules are transparent,
+            auditable, and tunable by the protocol team. That's a feature."
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>GuardianAI — Sui Overflow 2026</span>
+    <span>Agentic Web · Autonomous Risk Guardian · Walrus</span>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuardianAI — Integration Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #1a1f2e;
+      background: #fff;
+      padding: 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: #0f1623;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f1623;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .header-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .step-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .step-number {
+      width: 26px;
+      height: 26px;
+      background: #3d7ef8;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f1623;
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f1623;
+      letter-spacing: -0.3px;
+    }
+
+    h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #3d7ef8;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: #374151;
+      margin-bottom: 12px;
+    }
+
+    /* ── Code blocks ── */
+    pre {
+      background: #0f1623;
+      color: #e2eaf6;
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 12px 0 16px;
+    }
+
+    code {
+      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      background: #f1f5f9;
+      color: #3d7ef8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 13px;
+    }
+
+    thead tr {
+      background: #f8fafc;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #374151;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+
+    td:first-child { font-weight: 500; color: #1a1f2e; }
+
+    .tag-yes {
+      display: inline-block;
+      background: #dcfce7;
+      color: #16a34a;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tag-no {
+      display: inline-block;
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ── Callout box ── */
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid #3d7ef8;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+    }
+
+    .callout p {
+      color: #1e40af;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .callout strong { color: #1e3a8a; }
+
+    /* ── Summary steps ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .step-row-text {
+      flex: 1;
+    }
+
+    .step-row-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #0f1623;
+    }
+
+    .step-row-desc {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      margin-top: 48px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 32px; }
+      pre { font-size: 11px; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⬡</div>
+      <div>
+        <div class="logo-name">GuardianAI</div>
+        <div class="logo-sub">Autonomous Risk Guardian · Sui Blockchain</div>
+      </div>
+    </div>
+    <p class="header-desc">
+      Protocol Integration Guide — how to connect any Sui DeFi protocol to GuardianAI's
+      autonomous on-chain risk engine.
+    </p>
+  </div>
+
+  <!-- Overview -->
+  <div class="section">
+    <h3>Overview</h3>
+    <p>
+      GuardianAI watches your protocol's price feeds, liquidity levels, and on-chain state in
+      real time. When the risk score crosses a threshold, the agent executes a pre-authorised
+      defensive action directly on-chain — in seconds, not minutes.
+    </p>
+    <p>
+      The permission model is enforced by <strong>Move's type system</strong>, not application
+      logic. The agent can only call the exact functions you expose to it. Nothing else.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>Why Sui specifically?</strong> On Ethereum, giving an AI agent on-chain permissions
+        requires complex proxy contracts, multisigs, and governance delays. On Sui, Move's
+        capability objects enforce permissions at the VM level. It's a hard guarantee, not a promise.
+      </p>
+    </div>
+  </div>
+
+  <!-- Integration Steps -->
+  <div class="section">
+    <h3>Integration Steps</h3>
+
+    <div class="steps">
+      <div class="step-row">
+        <span class="step-number">1</span>
+        <div class="step-row-text">
+          <div class="step-row-title">Add GuardianAI as a Move dependency</div>
+          <div class="step-row-desc">One line in Move.toml — same as installing a package</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <span class="step-number">2</span>
+        <div class="step-row-text">
+          <div class="step-row-title">Add two functions to your contract</div>
+          <div class="step-row-desc">An enable function and one or more protected circuit breakers</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <span class="step-number">3</span>
+        <div class="step-row-text">
+          <div class="step-row-title">Deploy your updated contract</div>
+          <div class="step-row-desc">Standard testnet → mainnet deployment flow</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <span class="step-number">4</span>
+        <div class="step-row-text">
+          <div class="step-row-title">Sign one transaction to activate the guardian</div>
+          <div class="step-row-desc">Creates GuardianCap and transfers it to the agent wallet</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <span class="step-number">5</span>
+        <div class="step-row-text">
+          <div class="step-row-title">Configure thresholds on the dashboard</div>
+          <div class="step-row-desc">Set when to notify, tighten LTV, or pause — then you're live</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="section">
+    <div class="step-label">
+      <span class="step-number">1</span>
+      <h2>Add GuardianAI as a Move Dependency</h2>
+    </div>
+    <p>In your protocol's <code>Move.toml</code>:</p>
+    <pre><code>[dependencies]
+GuardianAI = {
+  git = "https://github.com/your-org/guardian-ai",
+  subdir = "contracts/guardian_ai"
+}</code></pre>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="section">
+    <div class="step-label">
+      <span class="step-number">2</span>
+      <h2>Add Two Functions to Your Contract</h2>
+    </div>
+    <p>
+      This is the only code your team writes. Add these to your existing protocol contract:
+    </p>
+    <pre><code>use guardian_ai::cap::{GuardianCap, GuardianConfig};
+use guardian_ai::cap;
+
+// 1. Accept and store the capability
+public fun enable_guardian(cap: GuardianCap, ctx: &mut TxContext) {
+    // store cap in your protocol's shared object
+}
+
+// 2. Protected circuit breaker — GuardianCap is the key
+//    Move enforces that ONLY the GuardianCap holder can call this
+public fun pause_swaps(
+    _cap: &GuardianCap,
+    config: &GuardianConfig,
+    protocol: &mut Protocol,
+) {
+    cap::assert_active(_cap, config); // checks guardian is enabled
+    protocol.swaps_enabled = false;
+}</code></pre>
+    <p>
+      The <code>_cap: &GuardianCap</code> parameter is the critical part. Move's type system
+      enforces at the VM level that only the holder of a <code>GuardianCap</code> object can
+      invoke this function. If you don't have it, the transaction is rejected before it runs.
+    </p>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="section">
+    <div class="step-label">
+      <span class="step-number">3</span>
+      <h2>Sign One Transaction to Activate</h2>
+    </div>
+    <p>
+      The protocol team calls <code>guardian_ai::cap::initialize(agent_wallet_address)</code>
+      once. This automatically creates three objects:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Object</th>
+          <th>Goes To</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GuardianCap</code></td>
+          <td>Agent wallet</td>
+          <td>Grants narrow permission to call circuit breaker functions</td>
+        </tr>
+        <tr>
+          <td><code>AdminCap</code></td>
+          <td>Protocol team wallet</td>
+          <td>Full control — enable, disable, override the guardian at any time</td>
+        </tr>
+        <tr>
+          <td><code>GuardianConfig</code></td>
+          <td>Shared (public)</td>
+          <td>Live guardian state — anyone can verify it on-chain</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- What the agent can and cannot do -->
+  <div class="section">
+    <h3>Agent Permissions</h3>
+    <p>
+      The agent's powers are narrow by design. Move's type system makes this a hard
+      enforcement, not a configuration setting.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Agent Can Do It</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Call circuit breaker functions (pause, tighten LTV)</td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+        </tr>
+        <tr>
+          <td>Withdraw funds</td>
+          <td><span class="tag-no">✗ No</span></td>
+        </tr>
+        <tr>
+          <td>Change protocol ownership</td>
+          <td><span class="tag-no">✗ No</span></td>
+        </tr>
+        <tr>
+          <td>Call any function not explicitly exposed with &GuardianCap</td>
+          <td><span class="tag-no">✗ No</span></td>
+        </tr>
+        <tr>
+          <td>Act after AdminCap revokes the guardian</td>
+          <td><span class="tag-no">✗ No</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Risk Score Table -->
+  <div class="section">
+    <h3>Risk Scoring</h3>
+    <p>
+      The off-chain engine scores risk every 4 seconds from Pyth price feeds and
+      on-chain state. Score is capped at 100.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>How Detected</th>
+          <th>Score Added</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Price deviation &gt;10% from TWAP</td>
+          <td>Pyth Hermes API comparison</td>
+          <td>+30</td>
+        </tr>
+        <tr>
+          <td>Price deviation 3–10% from TWAP</td>
+          <td>Pyth Hermes API comparison</td>
+          <td>+15</td>
+        </tr>
+        <tr>
+          <td>Oracle stale &gt;30s</td>
+          <td>Pyth publish timestamp check</td>
+          <td>+20</td>
+        </tr>
+        <tr>
+          <td>Pool balance dropped &gt;20% this interval</td>
+          <td>On-chain object polling delta</td>
+          <td>+35</td>
+        </tr>
+        <tr>
+          <td>Pool balance dropped 5–20% this interval</td>
+          <td>On-chain object polling delta</td>
+          <td>+15</td>
+        </tr>
+        <tr>
+          <td>Pool critically low (&lt;1% of baseline)</td>
+          <td>Absolute balance check</td>
+          <td>+90</td>
+        </tr>
+        <tr>
+          <td>Protocol already paused on-chain</td>
+          <td>Protocol object state read</td>
+          <td>+10</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Action Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0 – 49</td>
+          <td>Log only — no notification</td>
+        </tr>
+        <tr>
+          <td>50 – 69</td>
+          <td>Notify protocol team (Telegram / webhook)</td>
+        </tr>
+        <tr>
+          <td>70 – 84</td>
+          <td>Tighten LTV ratio via on-chain transaction</td>
+        </tr>
+        <tr>
+          <td>85 – 100</td>
+          <td>Pause protocol via on-chain transaction</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Human Override -->
+  <div class="section">
+    <h3>Human Override</h3>
+    <p>
+      The protocol team is always in control. The AdminCap gives instant override capability:
+    </p>
+    <pre><code>// Disable the guardian instantly — one transaction
+guardian_ai::cap::disable(&admin_cap, &mut guardian_config);
+
+// Unpause the protocol after review
+your_protocol::unpause_protocol(&admin_cap, &mut protocol, &mut log, &clock);
+
+// Re-enable when ready
+guardian_ai::cap::enable(&admin_cap, &mut guardian_config);</code></pre>
+
+    <div class="callout">
+      <p>
+        <strong>Every action is permanently logged on-chain.</strong> The <code>ActionLog</code>
+        shared object records every guardian action with timestamp, risk score, and plain-English
+        reasoning. Full signal context is stored on Walrus. No black box.
+      </p>
+    </div>
+  </div>
+
+  <!-- Integration time -->
+  <div class="section">
+    <h3>Time Estimate</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Integration Level</th>
+          <th>What You Get</th>
+          <th>Estimated Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Level 1 — Monitor Only</td>
+          <td>Live risk score dashboard, no capability transfer required</td>
+          <td>0 hours</td>
+        </tr>
+        <tr>
+          <td>Level 2 — Single Action (pause only)</td>
+          <td>Agent can pause your protocol. One function to add.</td>
+          <td>1–2 hours</td>
+        </tr>
+        <tr>
+          <td>Level 3 — Full Guardian</td>
+          <td>Pause + LTV tightening + circuit breakers. Full autonomous response.</td>
+          <td>2–4 hours</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>GuardianAI — Sui Overflow 2026</span>
+    <span>Agentic Web · Autonomous Risk Guardian · Walrus</span>
+  </div>
+
+</body>
+</html>
