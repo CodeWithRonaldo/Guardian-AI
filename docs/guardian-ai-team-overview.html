@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuardianAI — Full Project Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07090f;
+      --surface:  #0d1117;
+      --elevated: #161d2a;
+      --border:   #1e2d3d;
+      --text:     #e2eaf6;
+      --muted:    #7a93b4;
+      --dim:      #3d5169;
+      --safe:     #0fca82;
+      --warn:     #f5a623;
+      --danger:   #ff3b5c;
+      --accent:   #3d7ef8;
+      --elev:     #f07830;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #1a1f2e;
+      background: #fff;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ── Cover page ── */
+    .cover {
+      background: #07090f;
+      color: #e2eaf6;
+      padding: 60px 48px 48px;
+      margin-bottom: 0;
+    }
+
+    .cover-logo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .cover-icon {
+      width: 52px;
+      height: 52px;
+      background: #161d2a;
+      border: 1px solid #1e2d3d;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    .cover-title { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+    .cover-sub   { font-size: 14px; color: #7a93b4; margin-top: 4px; }
+
+    .cover-desc {
+      font-size: 16px;
+      color: #b0c4de;
+      line-height: 1.7;
+      max-width: 700px;
+      margin-bottom: 36px;
+    }
+
+    .cover-tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .tag-blue   { background: #0f1f45; color: #3d7ef8; border: 1px solid #1e3a80; }
+    .tag-green  { background: #091f17; color: #0fca82; border: 1px solid #0a3d26; }
+    .tag-orange { background: #1f1108; color: #f07830; border: 1px solid #3d2200; }
+
+    /* ── Main content ── */
+    .content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px;
+    }
+
+    /* ── Section ── */
+    .section { margin-bottom: 52px; }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #3d7ef8;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 20px;
+      padding: 3px 12px;
+      margin-bottom: 12px;
+    }
+
+    h1 { font-size: 26px; font-weight: 800; color: #0f1623; letter-spacing: -0.6px; margin-bottom: 12px; }
+    h2 { font-size: 20px; font-weight: 700; color: #0f1623; letter-spacing: -0.4px; margin-bottom: 10px; }
+    h3 { font-size: 15px; font-weight: 700; color: #0f1623; margin-bottom: 8px; }
+
+    p  { color: #374151; margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: #0f1623; }
+
+    ul, ol { padding-left: 20px; color: #374151; margin-bottom: 12px; }
+    li     { margin-bottom: 6px; }
+
+    code {
+      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
+      background: #f1f5f9;
+      color: #1d4ed8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+
+    pre {
+      background: #0f1623;
+      color: #e2eaf6;
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: 0 10px 10px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      border-left: 4px solid;
+    }
+
+    .callout p { margin: 0; font-size: 13px; }
+
+    .callout-blue   { background: #eff6ff; border-color: #3d7ef8; }
+    .callout-blue p { color: #1e40af; }
+
+    .callout-green   { background: #f0fdf4; border-color: #0fca82; }
+    .callout-green p { color: #15803d; }
+
+    .callout-yellow   { background: #fefce8; border-color: #f5a623; }
+    .callout-yellow p { color: #92400e; }
+
+    .callout-red   { background: #fef2f2; border-color: #ff3b5c; }
+    .callout-red p { color: #991b1b; }
+
+    /* ── Beginner note ── */
+    .beginner-note {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 14px 0;
+    }
+
+    .beginner-note-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #7c3aed;
+      margin-bottom: 6px;
+    }
+
+    .beginner-note p { color: #4c1d95; font-size: 13px; margin: 0; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      background: #07090f;
+      border-radius: 14px;
+      padding: 28px;
+      margin: 20px 0;
+      color: #e2eaf6;
+    }
+
+    .arch-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #7a93b4;
+      margin-bottom: 24px;
+    }
+
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .arch-box {
+      background: #161d2a;
+      border: 1px solid #1e2d3d;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 130px;
+    }
+
+    .arch-box-blue   { border-color: #1e3a80; color: #93c5fd; }
+    .arch-box-green  { border-color: #0a3d26; color: #6ee7b7; }
+    .arch-box-orange { border-color: #3d2200; color: #fcd34d; }
+    .arch-box-red    { border-color: #3d0a10; color: #fca5a5; }
+    .arch-box-purple { border-color: #3b0764; color: #d8b4fe; }
+
+    .arch-arrow {
+      color: #3d5169;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .arch-label {
+      font-size: 10px;
+      color: #3d5169;
+      margin: 0 4px;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+
+    thead tr { background: #f8fafc; }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #374151;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+    td:first-child { font-weight: 500; color: #0f1623; }
+
+    /* ── Step list ── */
+    .steps { display: flex; flex-direction: column; gap: 14px; margin: 16px 0; }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: #3d7ef8;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-body h3 { font-size: 14px; margin-bottom: 4px; }
+    .step-body p  { font-size: 13px; color: #64748b; margin: 0; }
+
+    /* ── Component card ── */
+    .component-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .component-header {
+      background: #f8fafc;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .component-icon {
+      font-size: 20px;
+    }
+
+    .component-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f1623;
+    }
+
+    .component-subtitle {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .component-body {
+      padding: 18px 20px;
+    }
+
+    /* ── Signal table colours ── */
+    .sig-green  { color: #15803d; font-weight: 600; }
+    .sig-yellow { color: #b45309; font-weight: 600; }
+    .sig-red    { color: #dc2626; font-weight: 600; }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 40px 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      background: #07090f;
+      color: #3d5169;
+      padding: 24px 48px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 48px;
+    }
+
+    @media print {
+      body { font-size: 12px; }
+      .cover { padding: 40px 32px 32px; }
+      .content { padding: 32px; }
+      .component-card { page-break-inside: avoid; }
+      .section { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     COVER
+════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">
+    <div class="cover-icon">⬡</div>
+    <div>
+      <div class="cover-title">GuardianAI</div>
+      <div class="cover-sub">Autonomous Risk Guardian · Sui Blockchain · Sui Overflow 2026</div>
+    </div>
+  </div>
+
+  <p class="cover-desc">
+    A complete technical and conceptual overview of the GuardianAI project — what it is,
+    why it exists, how every part works, and how all the pieces connect. Written for team
+    members at all levels, from beginners to experienced developers.
+  </p>
+
+  <div class="cover-tags">
+    <span class="tag tag-blue">React Frontend</span>
+    <span class="tag tag-blue">Node.js Backend</span>
+    <span class="tag tag-blue">Move Smart Contracts</span>
+    <span class="tag tag-green">Sui Testnet</span>
+    <span class="tag tag-green">Pyth Oracle</span>
+    <span class="tag tag-green">Walrus Storage</span>
+    <span class="tag tag-orange">Hackathon: Agentic Web Track</span>
+    <span class="tag tag-orange">Deadline: June 21, 2026</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ════════════════════════════════════════════════
+     SECTION 1: THE PROBLEM
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">01 · The Problem</div>
+  <h1>DeFi moves faster than humans can respond</h1>
+
+  <p>
+    DeFi (Decentralised Finance) is financial software that runs on blockchains.
+    Protocols like lending platforms and decentralised exchanges hold real money —
+    sometimes hundreds of millions of dollars — managed entirely by code.
+  </p>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is DeFi?</div>
+    <p>
+      Think of DeFi as a bank, but one where there are no employees — just software
+      running on a blockchain. Users deposit money, borrow against it, trade assets,
+      and earn yield — all automatically, without a bank approving anything.
+      Because there are no employees, if something goes wrong, there is no human
+      to press the emergency button. That is the problem GuardianAI solves.
+    </p>
+  </div>
+
+  <h2>The Cetus Exploit — a real example</h2>
+  <p>
+    In October 2025, Cetus — Sui's largest decentralised exchange — was attacked.
+    A bug in the code allowed an attacker to manipulate price calculations and drain
+    liquidity pools. <strong>Around $60 million was moved to Ethereum before anyone
+    could stop it.</strong>
+  </p>
+
+  <p>
+    The problem was not that nobody was watching. Monitoring tools like Hypernative
+    exist and they detected the attack. They sent an alert.
+  </p>
+
+  <p>
+    But then the human response chain kicked in:
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <h3>Alert fires</h3>
+        <p>Monitoring tool detects the anomaly and sends a notification.</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <h3>A human sees it</h3>
+        <p>Someone has to notice the alert — could be minutes if they are asleep or busy.</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <h3>A human understands it</h3>
+        <p>They have to read it, understand what is happening, and decide what to do.</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <h3>A human acts</h3>
+        <p>They have to execute the response — coordinate with the team, sign a transaction, pause the protocol.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    That entire chain takes <strong>minutes at best</strong>. The Cetus attacker
+    operated in seconds. By the time humans coordinated, the money was gone.
+  </p>
+
+  <div class="callout callout-red">
+    <p>
+      <strong>The missing piece is not better detection.</strong> It is faster response.
+      Specifically, autonomous on-chain response that does not wait for a human.
+      That is what GuardianAI is.
+    </p>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 2: WHAT GUARDIANAI IS
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">02 · The Solution</div>
+  <h1>What GuardianAI actually does</h1>
+
+  <p>
+    GuardianAI is a system that sits alongside any DeFi protocol and does three
+    things continuously — every 3 to 4 seconds, around the clock:
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num" style="background:#0fca82">W</span>
+      <div class="step-body">
+        <h3>Watches</h3>
+        <p>
+          Reads live price feeds from Pyth (a blockchain oracle service), reads on-chain
+          protocol state (pool balances, LTV ratios, paused flags), and tracks oracle
+          freshness. All of this happens in the background continuously.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num" style="background:#f5a623">T</span>
+      <div class="step-body">
+        <h3>Thinks</h3>
+        <p>
+          A risk engine scores the current situation from 0 to 100. It combines
+          multiple signals — price anomalies, pool drain speed, oracle staleness —
+          into a single risk score that updates every few seconds.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num" style="background:#ff3b5c">A</span>
+      <div class="step-body">
+        <h3>Acts</h3>
+        <p>
+          When the score crosses a threshold, the system does not send an alert —
+          it executes a protective action directly on the blockchain. In under 4 seconds.
+          No human required.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-green">
+    <p>
+      <strong>Every action is logged permanently on-chain.</strong> The protocol team
+      can see what happened, why, and override it with one click. The human is still
+      in control of the rules. The agent enforces them at machine speed.
+    </p>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 3: SYSTEM ARCHITECTURE
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">03 · Architecture</div>
+  <h1>How the system is built</h1>
+
+  <p>
+    GuardianAI has three main parts that work together. Each part has a specific job
+    and they communicate with each other in a clear, predictable way.
+  </p>
+
+  <div class="arch">
+    <div class="arch-title">System Architecture — Data Flow</div>
+
+    <div class="arch-row">
+      <div class="arch-box arch-box-blue">Pyth Oracle<br/><small style="color:#7a93b4">Price data every 3s</small></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box arch-box-orange" style="flex:1">Node.js Risk Engine<br/><small style="color:#7a93b4">Scores risk · Decides action · Signs tx</small></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box arch-box-green">Sui Blockchain<br/><small style="color:#7a93b4">Executes action on-chain</small></div>
+    </div>
+
+    <div class="arch-row" style="margin-top:6px">
+      <div class="arch-box arch-box-green">Sui RPC<br/><small style="color:#7a93b4">Protocol state every 4s</small></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box arch-box-orange" style="flex:1">Same Risk Engine<br/><small style="color:#7a93b4">Combines price + chain data</small></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box arch-box-purple">Walrus Storage<br/><small style="color:#7a93b4">Audit blob saved</small></div>
+    </div>
+
+    <div class="arch-row" style="margin-top:6px">
+      <div class="arch-box arch-box-blue" style="flex:1">React Dashboard<br/><small style="color:#7a93b4">Reads /status from engine · Reads chain directly</small></div>
+      <div class="arch-arrow">↔</div>
+      <div class="arch-box arch-box-orange">REST API<br/><small style="color:#7a93b4">/status · /config</small></div>
+    </div>
+  </div>
+
+  <p>
+    The <strong>backend risk engine</strong> is the brain. It sits in the middle —
+    pulling data in from two sources (Pyth and the blockchain) and pushing actions out
+    to two places (the blockchain and Walrus).
+  </p>
+
+  <p>
+    The <strong>frontend dashboard</strong> reads from both the backend engine (for the
+    live risk score and price) and directly from the blockchain (for protocol state and
+    action log entries).
+  </p>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 4: MOVE CONTRACTS
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">04 · Smart Contracts</div>
+  <h1>The Move smart contracts</h1>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is a smart contract?</div>
+    <p>
+      A smart contract is a program that lives on the blockchain. It is code that runs
+      automatically when triggered, and nobody can change it once deployed. Think of it
+      as a vending machine — you put in the right input, it gives you the right output,
+      and there is no human deciding anything in between.
+      Move is the programming language Sui uses to write smart contracts.
+    </p>
+  </div>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is Sui?</div>
+    <p>
+      Sui is a blockchain — a decentralised database that records transactions. It is
+      faster than most blockchains (transactions confirm in under a second) and uses
+      a programming language called Move which has strong safety guarantees built in.
+      GuardianAI is built on Sui specifically because Move's type system makes the
+      permission model safe in a way that is not possible on other blockchains.
+    </p>
+  </div>
+
+  <p>
+    The GuardianAI contracts are deployed at package address:
+    <code>0x50b1a715...ac9b2d</code> on Sui testnet. There are three modules:
+  </p>
+
+  <!-- cap.move -->
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">🔑</span>
+      <div>
+        <div class="component-title">guardian_ai::cap — The Permission System</div>
+        <div class="component-subtitle">File: contracts/guardian_ai/sources/cap.move</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>
+        This module defines the two capability objects that control who can do what.
+        A capability object in Sui is like a physical key — if you hold the key, you
+        have permission. If you do not hold it, the blockchain rejects your transaction.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Object</th><th>Who holds it</th><th>What it allows</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GuardianCap</code></td>
+            <td>The agent wallet (backend)</td>
+            <td>Call circuit breaker functions — pause protocol, tighten LTV</td>
+          </tr>
+          <tr>
+            <td><code>AdminCap</code></td>
+            <td>Protocol team wallet</td>
+            <td>Enable/disable the guardian, unpause, reset LTV. Full override.</td>
+          </tr>
+          <tr>
+            <td><code>GuardianConfig</code></td>
+            <td>Shared — anyone can read</td>
+            <td>Stores whether the guardian is enabled. Circuit breakers check this.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-blue">
+        <p>
+          <strong>Why this matters:</strong> Move's type system enforces these permissions
+          at the Virtual Machine level. You cannot call a function that requires
+          <code>&GuardianCap</code> unless you literally own a GuardianCap object in your wallet.
+          Not a password. Not an API key. A cryptographic object the blockchain itself verifies.
+          This is the security foundation of the entire system.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- action_log.move -->
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">📋</span>
+      <div>
+        <div class="component-title">guardian_ai::action_log — The Audit Trail</div>
+        <div class="component-subtitle">File: contracts/guardian_ai/sources/action_log.move</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>
+        This module defines a shared object called <code>ActionLog</code> that records
+        every single action the guardian takes. It is append-only — entries can be added
+        but never deleted. Anyone — the protocol team, their users, auditors, journalists —
+        can read the full history at any time.
+      </p>
+      <p>
+        Each log entry contains: timestamp, risk score at the time, what action was taken
+        (as a number code), and a plain English reason. The full signal context is stored
+        separately on Walrus to keep on-chain gas costs low.
+      </p>
+      <p>
+        <strong>Object ID on testnet:</strong>
+        <code>0xb48afb54...f827</code>
+      </p>
+    </div>
+  </div>
+
+  <!-- test_protocol.move -->
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">🧪</span>
+      <div>
+        <div class="component-title">guardian_ai::test_protocol — The Demo Protocol</div>
+        <div class="component-subtitle">File: contracts/guardian_ai/sources/test_protocol.move</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>
+        This is a mock DeFi protocol used for testing and the hackathon demo. It represents
+        the code a real protocol team would add to their own contract when integrating
+        GuardianAI. In production, this code would live in the protocol's own package.
+      </p>
+      <p>
+        It has four important functions:
+      </p>
+      <ul>
+        <li><strong>pause_protocol</strong> — requires GuardianCap. Halts all activity.</li>
+        <li><strong>tighten_ltv</strong> — requires GuardianCap. Reduces the LTV ratio.</li>
+        <li><strong>unpause_protocol</strong> — requires AdminCap. Resumes activity.</li>
+        <li><strong>simulate_pool_drain</strong> — requires AdminCap. For demo only — drains the pool balance to trigger risk signals.</li>
+      </ul>
+      <p>
+        <strong>Object ID on testnet:</strong>
+        <code>0x53096d53...93</code>
+      </p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 5: BACKEND
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">05 · Backend Risk Engine</div>
+  <h1>The Node.js risk engine</h1>
+
+  <p>
+    The backend is a Node.js service running on Render (a cloud hosting platform).
+    It is the brain of the system — it never stops running, never sleeps, and makes
+    all the risk decisions. It is split into several files, each with a single clear job.
+  </p>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is an oracle?</div>
+    <p>
+      A blockchain on its own does not know what the price of SUI is. It only knows
+      what transactions have happened. An oracle is a service that brings real-world
+      data (like prices) onto the blockchain. Pyth is the oracle we use — it publishes
+      SUI/USD prices every few seconds on Sui. Our backend reads those prices off-chain
+      via Pyth's API and uses them to calculate risk.
+    </p>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>File</th><th>What it does</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>pyth.js</code></td>
+        <td>Fetches SUI/USD price from Pyth's Hermes API every 3 seconds. Calculates a rolling TWAP (time-weighted average price) and measures how much the current price deviates from it. Also checks if the oracle data is stale (not updated in over 30 seconds).</td>
+      </tr>
+      <tr>
+        <td><code>chain.js</code></td>
+        <td>Reads the Protocol shared object from Sui every 4 seconds via RPC. Gets pool balance, LTV ratio, and paused flag. Computes how much the pool balance has dropped since the last reading.</td>
+      </tr>
+      <tr>
+        <td><code>scorer.js</code></td>
+        <td>The risk scoring engine. Combines price signals and chain signals into a single score from 0–100. Each signal has a weight. The final score is the weighted sum, capped at 100.</td>
+      </tr>
+      <tr>
+        <td><code>executor.js</code></td>
+        <td>When told to act, builds and signs a Programmable Transaction Block (PTB) using the agent wallet's private key. Submits it to the Sui RPC. Handles the pause and tighten_ltv actions.</td>
+      </tr>
+      <tr>
+        <td><code>walrus.js</code></td>
+        <td>After every on-chain action, stores a full JSON audit record to Walrus — the decentralised storage network. Contains raw signal values, price data, and the transaction digest.</td>
+      </tr>
+      <tr>
+        <td><code>index.js</code></td>
+        <td>The main entry point. Runs the polling loops, calls the scorer, decides what action to take, and runs a small Express HTTP server for the dashboard to query.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>The risk signals</h2>
+  <p>
+    The scorer combines seven signals. Multiple signals firing at the same time
+    push the score higher — a single minor anomaly stays low, but the pattern
+    of a real attack will spike the score.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Signal</th><th>Score Added</th><th>What it means</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Price deviates &gt;10% from TWAP</td>
+        <td class="sig-red">+30</td>
+        <td>Price is moving very fast — possible oracle manipulation</td>
+      </tr>
+      <tr>
+        <td>Price deviates 3–10% from TWAP</td>
+        <td class="sig-yellow">+15</td>
+        <td>Price is moving unusually fast — worth watching</td>
+      </tr>
+      <tr>
+        <td>Oracle stale &gt;30 seconds</td>
+        <td class="sig-yellow">+20</td>
+        <td>Price feed stopped updating — possible oracle attack</td>
+      </tr>
+      <tr>
+        <td>Pool balance dropped &gt;20% this interval</td>
+        <td class="sig-red">+35</td>
+        <td>Large, sudden pool drain — classic exploit signature</td>
+      </tr>
+      <tr>
+        <td>Pool balance dropped 5–20%</td>
+        <td class="sig-yellow">+15</td>
+        <td>Smaller drain — could be normal activity or early exploit</td>
+      </tr>
+      <tr>
+        <td>Pool balance &lt;1% of baseline</td>
+        <td class="sig-red">+90</td>
+        <td>Pool is almost completely drained — emergency, act immediately</td>
+      </tr>
+      <tr>
+        <td>Protocol already paused on-chain</td>
+        <td class="sig-green">+10</td>
+        <td>Paused flag already set — informational signal</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>What happens at each score</h2>
+  <table>
+    <thead>
+      <tr><th>Score</th><th>Action</th><th>On-chain?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>0 – 49</td><td>Log only. Nothing visible happens.</td><td>No</td></tr>
+      <tr><td>50 – 69</td><td>Notify — sends a POST to the configured webhook URL (Discord, Slack, etc.).</td><td>No</td></tr>
+      <tr><td>70 – 84</td><td>Tighten LTV — submits a transaction that reduces the LTV ratio on-chain.</td><td><strong>Yes</strong></td></tr>
+      <tr><td>85 – 100</td><td>Pause Protocol — submits a transaction that halts all protocol activity.</td><td><strong>Yes</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is a PTB?</div>
+    <p>
+      PTB stands for Programmable Transaction Block. On Sui, instead of sending one
+      simple transaction at a time, you can bundle multiple operations together into
+      one atomic block. Our executor builds one of these blocks, signs it with the
+      agent wallet's private key, and sends it to Sui. If it is accepted, all operations
+      execute together. If anything fails, none of them execute.
+    </p>
+  </div>
+
+  <h2>The HTTP API</h2>
+  <p>The backend exposes two endpoints the dashboard uses:</p>
+  <table>
+    <thead>
+      <tr><th>Endpoint</th><th>Method</th><th>Returns</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/status</code></td>
+        <td>GET</td>
+        <td>Current risk score, guardian enabled state, live SUI/USD price, chain state, current config</td>
+      </tr>
+      <tr>
+        <td><code>/config</code></td>
+        <td>POST</td>
+        <td>Updates thresholds, LTV tighten amount, and webhook URL in real time</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 6: FRONTEND
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">06 · Frontend Dashboard</div>
+  <h1>The React dashboard</h1>
+
+  <p>
+    The frontend is a React web application built with Vite. It uses the
+    <code>@mysten/dapp-kit</code> library to connect Sui wallets and read
+    on-chain data. It has four pages.
+  </p>
+
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">◈</span>
+      <div>
+        <div class="component-title">Dashboard</div>
+        <div class="component-subtitle">The main monitoring screen</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>Shows the live risk score as a semicircular gauge (colour changes from green → orange → red as risk increases), the current SUI/USD price from the backend, on-chain protocol state (LTV ratio, pool balance, paused/active status), and a chart of the last 20 action log entries.</p>
+      <p>The gauge score comes from the backend's <code>/status</code> endpoint. The protocol stats come from reading the Protocol shared object on Sui directly, via the Sui RPC.</p>
+    </div>
+  </div>
+
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">≡</span>
+      <div>
+        <div class="component-title">Action Log</div>
+        <div class="component-subtitle">The permanent on-chain audit trail</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>Shows every action the guardian has ever taken, pulled directly from the <code>ActionLog</code> shared object on Sui. Each entry shows the timestamp, risk score at the time, the action taken (colour-coded), and the plain English reason.</p>
+      <p>This is not a backend database — it reads the blockchain directly. The data is permanent and cannot be deleted or edited by anyone, including GuardianAI.</p>
+    </div>
+  </div>
+
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">⚙</span>
+      <div>
+        <div class="component-title">Configuration</div>
+        <div class="component-subtitle">Guardian settings and on-chain permissions</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>Where the protocol team manages the guardian. Contains:</p>
+      <ul>
+        <li><strong>Guardian toggle</strong> — Enable or disable the guardian with one click. Requires the AdminCap wallet to be connected. Signs and submits an on-chain transaction.</li>
+        <li><strong>Risk threshold sliders</strong> — Set the score at which each action fires. Saved to the backend via POST /config and to localStorage for persistence across page reloads.</li>
+        <li><strong>LTV tighten amount</strong> — How many basis points (1 basis point = 0.01%) to reduce LTV when the tighten action fires.</li>
+        <li><strong>Webhook URL</strong> — Paste a Discord, Slack, or any HTTP webhook. The backend posts an alert here when the risk score crosses the Notify threshold.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="component-card">
+    <div class="component-header">
+      <span class="component-icon">▶</span>
+      <div>
+        <div class="component-title">Simulation</div>
+        <div class="component-subtitle">The demo weapon</div>
+      </div>
+    </div>
+    <div class="component-body">
+      <p>Replays a 30-second Cetus-style exploit scenario entirely in the browser — no real transactions, no CLI required. The gauge climbs in real time, signals turn red, and the system shows which action would fire and when.</p>
+      <p>The scenario is based on the actual Cetus attack pattern: gradual price deviation followed by oracle staleness and rapid pool drain. The score climbs from 0 to 80+ over 30 seconds, triggering Notify then Tighten LTV actions with visible timestamps.</p>
+      <p>This is the primary demo tool for the hackathon presentation.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 7: WALRUS
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">07 · Walrus Integration</div>
+  <h1>What Walrus is and why we use it</h1>
+
+  <div class="beginner-note">
+    <div class="beginner-note-title">Beginner note — What is Walrus?</div>
+    <p>
+      Walrus is a decentralised storage network built by the Sui team. Instead of storing
+      files on Amazon S3 or Google Drive (which are centralised and can be shut down or
+      censored), Walrus stores data across a distributed network. Once stored, the data
+      gets a unique ID (called a blob ID) and can be retrieved by anyone. It is one of
+      the hackathon tracks, which is why we integrate it.
+    </p>
+  </div>
+
+  <p>
+    We use Walrus for two things:
+  </p>
+
+  <p>
+    <strong>1. Extended audit logs.</strong> The on-chain ActionLog keeps entries small
+    to minimise gas costs — it stores the action code (a number) and a short reason string.
+    After every autonomous action, the backend writes a full JSON blob to Walrus containing
+    all the raw signal values, the Pyth price at the time, the pool balance, the transaction
+    digest, and the timestamp. The Walrus blob ID is what links the compact on-chain entry
+    to the full context.
+  </p>
+
+  <p>
+    <strong>2. Verifiable audit trail.</strong> Protocol teams and their users can point
+    to a Walrus blob ID and independently verify what the guardian saw and why it acted.
+    No one can modify or delete the blob after it is stored.
+  </p>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 8: TWO WALLETS EXPLAINED
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">08 · Security Model</div>
+  <h1>Why there are two wallets</h1>
+
+  <p>
+    The system uses two separate wallets deliberately. Each represents a different entity
+    with a different level of trust.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Wallet</th><th>Address</th><th>Holds</th><th>Can do</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Admin wallet</strong><br/>(Protocol team)</td>
+        <td><code style="font-size:11px">0xdab28d...f390</code></td>
+        <td>AdminCap</td>
+        <td>Enable/disable guardian, unpause protocol, reset LTV, full override</td>
+      </tr>
+      <tr>
+        <td><strong>Agent wallet</strong><br/>(Backend)</td>
+        <td><code style="font-size:11px">0xc56efa...1339</code></td>
+        <td>GuardianCap</td>
+        <td>Pause protocol, tighten LTV. Nothing else.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    The agent wallet's private key lives in the backend's environment variables on Render.
+    It signs transactions automatically. <strong>But it can only sign transactions that
+    call functions accepting <code>&GuardianCap</code> as a parameter</strong> — which
+    are only the circuit breaker functions explicitly written by the protocol team.
+  </p>
+
+  <p>
+    If the backend were ever compromised, the attacker would have the agent wallet's key.
+    They could pause the protocol or tighten LTV — both recoverable actions. They could
+    not withdraw funds, change ownership, or do anything outside the GuardianCap's scope.
+    The AdminCap wallet is completely separate and the backend never touches it.
+  </p>
+
+  <div class="callout callout-blue">
+    <p>
+      Think of it like a security guard at a building. The guard has a key to lock the
+      front door in an emergency — but not the master key to every room and the safe.
+      Two keys, two levels of trust.
+    </p>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 9: DEMO FLOW
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">09 · The Demo</div>
+  <h1>What happens during a live demo</h1>
+
+  <h2>Option A — Simulation page (no CLI, 100% browser)</h2>
+  <div class="steps">
+    <div class="step"><span class="step-num">1</span><div class="step-body"><h3>Open the Simulation page</h3><p>Risk score sitting at 0. Protocol status: Active. All signals green.</p></div></div>
+    <div class="step"><span class="step-num">2</span><div class="step-body"><h3>Click "Run Simulation"</h3><p>The 30-second Cetus-style scenario starts. No real transactions happen.</p></div></div>
+    <div class="step"><span class="step-num">3</span><div class="step-body"><h3>Watch the score climb</h3><p>Price deviation appears, oracle goes stale, pool drain starts. Score climbs: 15 → 30 → 50 → 70 → 80.</p></div></div>
+    <div class="step"><span class="step-num">4</span><div class="step-body"><h3>Actions fire automatically</h3><p>At score 50 → Notify label appears. At score 70 → Tighten LTV fires. Nobody clicked anything.</p></div></div>
+  </div>
+
+  <h2>Option B — Real on-chain demo (requires CLI)</h2>
+  <div class="steps">
+    <div class="step"><span class="step-num">1</span><div class="step-body"><h3>Open the Dashboard</h3><p>Score: 0. Pool Balance: 10,000 SUI. Status: Active.</p></div></div>
+    <div class="step"><span class="step-num">2</span><div class="step-body"><h3>Run simulate_pool_drain via CLI</h3><p>Drains the pool from 10,000 SUI to 1 SUI. This is a real on-chain transaction.</p></div></div>
+    <div class="step"><span class="step-num">3</span><div class="step-body"><h3>Watch the dashboard (within 4 seconds)</h3><p>Pool Balance drops to 1 SUI. Score jumps to 90. Status turns red: Paused.</p></div></div>
+    <div class="step"><span class="step-num">4</span><div class="step-body"><h3>Nobody clicked anything</h3><p>The backend detected the drain, computed score 90, and submitted the pause_protocol transaction autonomously.</p></div></div>
+    <div class="step"><span class="step-num">5</span><div class="step-body"><h3>Check the Action Log</h3><p>A new entry appears showing the timestamp, score, action taken, and reason. Permanently on-chain.</p></div></div>
+    <div class="step"><span class="step-num">6</span><div class="step-body"><h3>Show the override</h3><p>Connect the AdminCap wallet. One click on "Disable guardian" or use unpause_protocol. The team is always in control.</p></div></div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 10: DEPLOYMENT
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">10 · Deployment</div>
+  <h1>Where everything runs</h1>
+
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Where it runs</th><th>URL / Address</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Move contracts</td>
+        <td>Sui Testnet (blockchain)</td>
+        <td><code style="font-size:11px">0x50b1a715...ac9b2d</code></td>
+      </tr>
+      <tr>
+        <td>Backend risk engine</td>
+        <td>Render (cloud server)</td>
+        <td><code>https://guardian-ai-7ujt.onrender.com</code></td>
+      </tr>
+      <tr>
+        <td>Frontend dashboard</td>
+        <td>Local dev / pending Vercel deploy</td>
+        <td><code>localhost:5175</code> (dev)</td>
+      </tr>
+      <tr>
+        <td>Walrus audit blobs</td>
+        <td>Walrus Testnet</td>
+        <td>publisher.walrus-testnet.walrus.space</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Key object IDs on Sui Testnet</h2>
+  <table>
+    <thead>
+      <tr><th>Object</th><th>ID</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Package</td><td><code style="font-size:11px">0x50b1a7151841d91039798ceabf37fb2bac34810d789e410e8a27f06e44ac9b2d</code></td></tr>
+      <tr><td>Protocol (shared)</td><td><code style="font-size:11px">0x53096d53e284b88eb7e72e4f41d8da8bb5025b7d9a6d7834a3be9c9f5d445893</code></td></tr>
+      <tr><td>ActionLog (shared)</td><td><code style="font-size:11px">0xb48afb54dc8ea14e2674e2ebd5b0fb67504b10547cb7e4516da8f1e39231f827</code></td></tr>
+      <tr><td>GuardianConfig (shared)</td><td><code style="font-size:11px">0x9be0eec7ca3b0dfbdafd2671a062c1282ac8ea122ecfa11720f4bf29da1bba51</code></td></tr>
+      <tr><td>AdminCap</td><td><code style="font-size:11px">0xc7010bd2474b542bf9c3a3d1ddbf14a55769b26eb3dcf3d877207265be42e757</code></td></tr>
+      <tr><td>GuardianCap</td><td><code style="font-size:11px">0xaae3c4356b61dd5c35e3835f95afae0b9d549506af30a7f90d99e561b8a9df3c</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider" />
+
+<!-- ════════════════════════════════════════════════
+     SECTION 11: WHAT'S LEFT
+════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-tag">11 · Remaining Work</div>
+  <h1>What is done and what is left</h1>
+
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Status</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Move contracts</td><td class="sig-green">✓ Done</td><td>Deployed and tested on testnet</td></tr>
+      <tr><td>Backend risk engine</td><td class="sig-green">✓ Done</td><td>Running on Render, polling live</td></tr>
+      <tr><td>Frontend — all 4 pages</td><td class="sig-green">✓ Done</td><td>Dashboard, Log, Config, Simulation</td></tr>
+      <tr><td>Live backend score on dashboard</td><td class="sig-green">✓ Done</td><td>Wired to /status endpoint</td></tr>
+      <tr><td>Configuration page — sliders</td><td class="sig-green">✓ Done</td><td>Saves to backend + localStorage</td></tr>
+      <tr><td>Guardian toggle on/off</td><td class="sig-green">✓ Done</td><td>Signs on-chain tx via connected wallet</td></tr>
+      <tr><td>Walrus audit blobs</td><td class="sig-green">✓ Done</td><td>Fires after every on-chain action</td></tr>
+      <tr><td>Full demo tested end-to-end</td><td class="sig-green">✓ Done</td><td>Pool drain → autonomous pause confirmed</td></tr>
+      <tr><td>Frontend deployed publicly</td><td class="sig-red">⬜ Pending</td><td>Need Vercel or Netlify deploy</td></tr>
+      <tr><td>Demo video on YouTube</td><td class="sig-red">⬜ Pending</td><td>Max 5 minutes, required for submission</td></tr>
+      <tr><td>Project logo</td><td class="sig-red">⬜ Pending</td><td>1:1 ratio JPG/PNG</td></tr>
+      <tr><td>GitHub repo made public</td><td class="sig-red">⬜ Pending</td><td>Required for submission — currently private</td></tr>
+      <tr><td>Written project description</td><td class="sig-red">⬜ Pending</td><td>For the hackathon submission form</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-yellow">
+    <p>
+      <strong>Deadline: June 21, 2026.</strong> All code is complete. The remaining
+      items are submission packaging — deploying the frontend, recording the demo video,
+      creating a logo, making the repo public, and writing the project description.
+    </p>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<div class="footer">
+  <span>GuardianAI · Team Overview Document</span>
+  <span>Sui Overflow 2026 · Agentic Web · Walrus</span>
+</div>
+
+</body>
+</html>

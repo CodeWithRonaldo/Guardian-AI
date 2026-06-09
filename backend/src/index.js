@@ -21,16 +21,39 @@ let guardianEnabled     = true;
 let executing           = false;
 
 // ── Webhook notification ───────────────────────────────────────────────────
-// Generic JSON payload — works with Discord, Slack, and any HTTP endpoint.
-// Discord webhooks also accept the `content` field directly.
+// Supports three formats:
+//   telegram://BOT_TOKEN/CHAT_ID  — Telegram bot message
+//   https://discord.com/...       — Discord embed
+//   any other https URL           — generic JSON POST
 async function sendWebhook(score, reason, signals) {
   if (!currentWebhookUrl) return;
   try {
-    const isDiscord = currentWebhookUrl.includes('discord.com/api/webhooks');
     const timestamp = new Date().toISOString();
 
-    const payload = isDiscord
-      ? {
+    if (currentWebhookUrl.startsWith('telegram://')) {
+      // Parse telegram://TOKEN/CHAT_ID
+      const rest     = currentWebhookUrl.slice('telegram://'.length);
+      const slashIdx = rest.indexOf('/');
+      const token    = rest.slice(0, slashIdx);
+      const chatId   = rest.slice(slashIdx + 1);
+      const emoji    = score >= 85 ? '🚨' : score >= 70 ? '⚠️' : '📢';
+      const text     = `${emoji} *GuardianAI Alert* — Risk score *${score}/100*\n\n`
+                     + `*Reason:* ${reason}\n\n`
+                     + `*Signals:*\n${signals.map(s => `▸ ${s}`).join('\n')}\n\n`
+                     + `_${timestamp}_`;
+
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+        signal:  AbortSignal.timeout(6_000),
+      });
+
+    } else if (currentWebhookUrl.includes('discord.com/api/webhooks')) {
+      await fetch(currentWebhookUrl, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
           content: `🚨 **GuardianAI Alert** — Risk score **${score}**\n> ${reason}`,
           embeds: [{
             title:  'Active Signals',
@@ -38,21 +61,20 @@ async function sendWebhook(score, reason, signals) {
             fields: signals.map(s => ({ name: '▸', value: s, inline: false })),
             footer: { text: `GuardianAI · ${timestamp}` },
           }],
-        }
-      : {
-          source:    'GuardianAI',
-          riskScore: score,
-          reason,
-          signals,
-          timestamp,
-        };
+        }),
+        signal: AbortSignal.timeout(6_000),
+      });
 
-    await fetch(currentWebhookUrl, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-      signal:  AbortSignal.timeout(6_000),
-    });
+    } else {
+      // Generic JSON — works with Slack, n8n, Make, any HTTP endpoint
+      await fetch(currentWebhookUrl, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ source: 'GuardianAI', riskScore: score, reason, signals, timestamp }),
+        signal:  AbortSignal.timeout(6_000),
+      });
+    }
+
     log.info('Webhook notification sent.');
   } catch (err) {
     log.warn(`Webhook failed: ${err.message}`);
@@ -213,8 +235,8 @@ app.post('/config', (req, res) => {
 
   // ── Validate webhook URL ──
   if (webhookUrl !== undefined) {
-    if (webhookUrl !== '' && !webhookUrl.startsWith('http')) {
-      return res.status(400).json({ error: 'webhookUrl must be a valid HTTP/HTTPS URL.' });
+    if (webhookUrl !== '' && !webhookUrl.startsWith('http') && !webhookUrl.startsWith('telegram://')) {
+      return res.status(400).json({ error: 'webhookUrl must be a valid HTTP/HTTPS URL or telegram://TOKEN/CHAT_ID.' });
     }
     currentWebhookUrl = webhookUrl;
   }

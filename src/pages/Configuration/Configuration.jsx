@@ -343,15 +343,18 @@ export default function Configuration() {
           <input
             type="url"
             className={styles.webhookInput}
-            placeholder="https://discord.com/api/webhooks/... or any HTTPS endpoint"
+            placeholder="telegram://BOT_TOKEN/CHAT_ID  or  https://discord.com/api/webhooks/..."
             value={values.webhookUrl}
             onChange={e => setField('webhookUrl', e.target.value)}
           />
-          {values.webhookUrl && !values.webhookUrl.startsWith('http') && (
-            <p className={styles.fieldError}>Must be a valid HTTP/HTTPS URL</p>
+          {values.webhookUrl &&
+            !values.webhookUrl.startsWith('http') &&
+            !values.webhookUrl.startsWith('telegram://') && (
+            <p className={styles.fieldError}>Must be a valid URL or telegram://TOKEN/CHAT_ID</p>
           )}
           <p className={styles.webhookHint}>
-            Leave blank to disable notifications. The payload includes risk score, reason, and active signals.
+            Supports Telegram (<code>telegram://TOKEN/CHAT_ID</code>), Discord, Slack, or any HTTP endpoint.
+            Leave blank to disable.
           </p>
         </div>
       </Card>
