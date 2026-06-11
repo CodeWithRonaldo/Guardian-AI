@@ -8,6 +8,7 @@ import { useProtocol } from '../../hooks/useProtocol';
 import { useBackendStatus } from '../../hooks/useBackendStatus';
 import {
   GUARDIAN_CONFIG_ID, ADMIN_CAP_ID, PACKAGE_ID, BACKEND_URL,
+  PROTOCOL_ID, ACTION_LOG_ID,
 } from '../../constants/contracts';
 import styles from './Configuration.module.css';
 
@@ -52,8 +53,10 @@ export default function Configuration() {
   const [isDirty,      setIsDirty]      = useState(false);
   const [saveStatus,   setSaveStatus]   = useState(null); // null|'saving'|'success'|'error'
   const [saveError,    setSaveError]    = useState('');
-  const [toggleStatus, setToggleStatus] = useState(null); // null|'pending'|'success'|'error'
-  const [toggleError,  setToggleError]  = useState('');
+  const [toggleStatus,  setToggleStatus]  = useState(null); // null|'pending'|'success'|'error'
+  const [toggleError,   setToggleError]   = useState('');
+  const [unpauseStatus, setUnpauseStatus] = useState(null); // null|'pending'|'success'|'error'
+  const [unpauseError,  setUnpauseError]  = useState('');
 
   // On first backend contact: if localStorage has saved values that differ from
   // what the backend is running (e.g. after a Render restart), auto-re-push them.
@@ -177,6 +180,43 @@ export default function Configuration() {
     } catch (err) {
       setToggleStatus('error');
       setToggleError(err.message?.includes('owned') ? 'Wrong wallet — connect the AdminCap wallet.' : err.message);
+    }
+  }
+
+  // ── Unpause protocol ────────────────────────────────────────────────────────
+  async function handleUnpause() {
+    if (!account) return;
+    setUnpauseStatus('pending');
+    setUnpauseError('');
+
+    try {
+      const CLOCK_ID = '0x0000000000000000000000000000000000000000000000000000000000000006';
+      const tx = new Transaction();
+      tx.moveCall({
+        target:    `${PACKAGE_ID}::test_protocol::unpause_protocol`,
+        arguments: [
+          tx.object(ADMIN_CAP_ID),
+          tx.object(PROTOCOL_ID),
+          tx.object(ACTION_LOG_ID),
+          tx.object(CLOCK_ID),
+        ],
+      });
+
+      await signAndExecute({ transaction: tx });
+
+      // Clear backend action suppression so it can fire again on next attack
+      if (BACKEND_URL) {
+        fetch(`${BACKEND_URL}/demo/reset`, { method: 'POST' }).catch(() => {});
+      }
+
+      setUnpauseStatus('success');
+      setTimeout(() => {
+        setUnpauseStatus(null);
+        protocol.refetch?.();
+      }, 2000);
+    } catch (err) {
+      setUnpauseStatus('error');
+      setUnpauseError(err.message?.includes('owned') ? 'Wrong wallet — connect the AdminCap wallet.' : err.message);
     }
   }
 
@@ -367,6 +407,30 @@ export default function Configuration() {
           <StateItem label="LTV Ratio"    value={protocol.ltvRatio !== null ? `${(protocol.ltvRatio / 100).toFixed(0)}%` : '—'} />
           <StateItem label="Pool Balance" value={protocol.poolBalance !== null ? `${(protocol.poolBalance / 1e9).toLocaleString()} SUI` : '—'} />
         </div>
+
+        {protocol.paused && (
+          <div className={styles.unpauseRow}>
+            <p className={styles.unpauseNote}>
+              Protocol is paused by the guardian. Connect the AdminCap wallet to resume normal operation.
+            </p>
+            {unpauseStatus === 'error' && (
+              <p className={styles.toggleError}>{unpauseError}</p>
+            )}
+            {!account ? (
+              <p className={styles.connectHint}>Connect AdminCap wallet to unpause</p>
+            ) : (
+              <button
+                className={styles.btnUnpause}
+                onClick={handleUnpause}
+                disabled={unpauseStatus === 'pending'}
+              >
+                {unpauseStatus === 'pending' ? 'Confirm in wallet…'
+                  : unpauseStatus === 'success' ? '✓ Protocol resumed'
+                  : 'Unpause Protocol'}
+              </button>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* ── Permission objects ── */}
