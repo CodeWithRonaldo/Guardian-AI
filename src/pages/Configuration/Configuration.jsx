@@ -78,7 +78,8 @@ export default function Configuration() {
       backendT.notify     !== localT.notify      ||
       backendT.tightenLtv !== localT.tightenLtv  ||
       backendT.pause      !== localT.pause        ||
-      backend.config.ltvTightenBps !== localSave.ltvTightenBps;
+      backend.config.ltvTightenBps !== localSave.ltvTightenBps ||
+      (backend.config.webhookUrl === '' && Boolean(localSave.webhookUrl));
 
     if (drifted) {
       // Silently re-push local config to backend
