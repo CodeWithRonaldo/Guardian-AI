@@ -49,7 +49,7 @@ export function computeRiskScore(priceAnalysis, chainState) {
   // ── Pool balance absolute low ────────────────────
   // Catches a drained pool even when the backend restarts after the drain.
   const poolPct = (chainState.poolBalance / POOL_BASELINE_MIST) * 100;
-  if (poolPct < 5) {
+  if (poolPct <= 5) {
     add(WEIGHTS.poolAbsLow, `Pool critically low: ${poolPct.toFixed(2)}% of baseline (${(chainState.poolBalance / 1e9).toFixed(2)} SUI)`);
   }
 
