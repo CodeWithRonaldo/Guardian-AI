@@ -181,3 +181,59 @@
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+/* ── On-chain tx status banners ───────────────── */
+.txBannerFiring,
+.txBannerDone,
+.txBannerError {
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.txBannerFiring {
+  background: rgba(90, 120, 255, 0.08);
+  border: 1px solid rgba(90, 120, 255, 0.25);
+  color: var(--accent);
+}
+
+.txBannerDone {
+  background: var(--safe-dim);
+  border: 1px solid rgba(15, 202, 130, 0.3);
+  color: var(--safe);
+}
+
+.txBannerError {
+  background: var(--danger-dim);
+  border: 1px solid rgba(255, 59, 92, 0.3);
+  color: var(--danger);
+}
+
+.txLink {
+  color: var(--safe);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.txLink:hover { opacity: 0.8; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.txSpinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(90, 120, 255, 0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}

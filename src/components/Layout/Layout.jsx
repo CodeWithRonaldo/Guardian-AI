@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/log',          label: 'Action Log',    icon: '≡' },
   { to: '/config',       label: 'Configuration', icon: '⚙' },
   { to: '/simulation',   label: 'Simulation',    icon: '▶' },
+  { to: '/docs',         label: 'Docs',          icon: '⊡' },
 ];
 
 export default function Layout() {

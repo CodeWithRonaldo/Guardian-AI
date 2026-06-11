@@ -23,6 +23,15 @@
   margin-top: 3px;
 }
 
+.explorerLink {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+.explorerLink:hover { opacity: 0.75; }
+
 .count {
   font-size: 12px;
   font-weight: 600;

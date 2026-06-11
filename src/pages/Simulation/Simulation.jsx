@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContai
 import RiskGauge from '../../components/RiskGauge/RiskGauge';
 import Card from '../../components/Card/Card';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
-import { RISK_THRESHOLDS, ACTION_LABELS } from '../../constants/contracts';
+import { RISK_THRESHOLDS, ACTION_LABELS, BACKEND_URL } from '../../constants/contracts';
 import styles from './Simulation.module.css';
 
 // Simulates the Cetus-style exploit pattern:
@@ -24,7 +24,7 @@ const SCENARIO = [
 
 function computeScore({ priceDevPct, poolDropPct, oracleStale }) {
   let score = 0;
-  if (priceDevPct > 10)  score += 25;
+  if (priceDevPct > 10)  score += 30;
   else if (priceDevPct > 3) score += Math.round(priceDevPct * 1.5);
   if (poolDropPct > 20)  score += 35;
   else if (poolDropPct > 5) score += Math.round(poolDropPct * 1.2);
@@ -45,7 +45,11 @@ export default function Simulation() {
   const [history,    setHistory]    = useState([]);
   const [events,     setEvents]     = useState([]);
   const [finished,   setFinished]   = useState(false);
-  const timerRef = useRef(null);
+  const [txStatus,   setTxStatus]   = useState(null); // null | 'firing' | 'done' | 'error'
+  const [txDigest,   setTxDigest]   = useState(null);
+  const [txError,    setTxError]    = useState('');
+  const timerRef    = useRef(null);
+  const hasFiredRef = useRef(false);
 
   const currentStep = SCENARIO[Math.min(stepIdx, SCENARIO.length - 1)];
   const score = running || finished ? computeScore(currentStep) : 0;
@@ -83,6 +87,46 @@ export default function Simulation() {
     return () => clearInterval(timerRef.current);
   }, [running]);
 
+  // When score first crosses the pause threshold, fire the real on-chain tx
+  useEffect(() => {
+    if (!running && !finished) return;
+    if (hasFiredRef.current)   return;
+    if (!BACKEND_URL)          return;
+
+    const step = SCENARIO[Math.min(stepIdx, SCENARIO.length - 1)];
+    const sc   = computeScore(step);
+    if (sc < RISK_THRESHOLDS.PAUSE) return;
+
+    hasFiredRef.current = true;
+    setTxStatus('firing');
+
+    fetch(`${BACKEND_URL}/demo/inject`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        priceDevPct: step.priceDevPct,
+        poolDropPct: step.poolDropPct,
+        oracleStale: step.oracleStale,
+      }),
+      signal: AbortSignal.timeout(30_000),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          setTxStatus('error');
+          setTxError(data.error);
+        } else {
+          setTxStatus('done');
+          setTxDigest(data.digest ?? null);
+        }
+      })
+      .catch(err => {
+        setTxStatus('error');
+        setTxError(err.message);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, running, finished]);
+
   function start() {
     setStepIdx(0);
     setHistory([{ second: 0, score: 0 }]);
@@ -98,6 +142,13 @@ export default function Simulation() {
     setStepIdx(0);
     setHistory([]);
     setEvents([]);
+    setTxStatus(null);
+    setTxDigest(null);
+    setTxError('');
+    hasFiredRef.current = false;
+    if (BACKEND_URL) {
+      fetch(`${BACKEND_URL}/demo/reset`, { method: 'POST' }).catch(() => {});
+    }
   }
 
   const protocolVariant = score >= 85 ? 'paused' : score >= 50 ? 'elevated' : 'active';
@@ -220,12 +271,47 @@ export default function Simulation() {
         </Card>
       )}
 
+      {/* On-chain tx status */}
+      {txStatus && (
+        <div className={
+          txStatus === 'done'  ? styles.txBannerDone  :
+          txStatus === 'error' ? styles.txBannerError :
+          styles.txBannerFiring
+        }>
+          {txStatus === 'firing' && (
+            <>
+              <span className={styles.txSpinner} />
+              Submitting pause transaction to Sui testnet…
+            </>
+          )}
+          {txStatus === 'done' && txDigest && (
+            <>
+              <span>✓ Pause confirmed on-chain</span>
+              <a
+                href={`https://suiscan.xyz/testnet/tx/${txDigest}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.txLink}
+              >
+                View on Sui Explorer →
+              </a>
+            </>
+          )}
+          {txStatus === 'done' && !txDigest && (
+            <span>✓ Guardian processed the signal (score may not have crossed threshold in backend)</span>
+          )}
+          {txStatus === 'error' && (
+            <span>⚠ {txError || 'Transaction failed — check backend logs.'}</span>
+          )}
+        </div>
+      )}
+
       {finished && (
         <div className={styles.summary}>
           <span className={styles.summaryIcon}>✓</span>
-          Simulation complete. In a real deployment, the guardian would have submitted
-          these transactions on-chain within the same time window — before a human
-          could even read the alert.
+          {txDigest
+            ? 'Real on-chain pause submitted by the agent — no human clicked anything. Check the Action Log and Sui Explorer for proof.'
+            : 'Simulation complete. In a real deployment, the guardian would have submitted these transactions on-chain within the same time window — before a human could even read the alert.'}
         </div>
       )}
     </div>

@@ -139,6 +139,19 @@ export default function Dashboard() {
                 {new Date(log.latest.timestampMs).toLocaleString()}
               </span>
             </div>
+            {backend.lastTxDigest && (
+              <div className={styles.latestRow}>
+                <span className={styles.latestLabel}>Transaction</span>
+                <a
+                  href={`https://suiscan.xyz/testnet/tx/${backend.lastTxDigest}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.txLink}
+                >
+                  {backend.lastTxDigest.slice(0, 20)}… View on Sui Explorer →
+                </a>
+              </div>
+            )}
           </div>
         </Card>
       )}

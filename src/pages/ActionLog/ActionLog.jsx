@@ -1,5 +1,6 @@
 import { useActionLog } from '../../hooks/useActionLog';
 import Card from '../../components/Card/Card';
+import { ACTION_LOG_ID, NETWORK } from '../../constants/contracts';
 import styles from './ActionLog.module.css';
 
 const ACTION_STYLES = {
@@ -27,7 +28,15 @@ export default function ActionLog() {
         <div>
           <h1 className={styles.title}>Action Log</h1>
           <p className={styles.subtitle}>
-            On-chain audit trail — every guardian action, permanently recorded
+            On-chain audit trail — every guardian action, permanently recorded.{' '}
+            <a
+              href={`https://suiscan.xyz/${NETWORK}/object/${ACTION_LOG_ID}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.explorerLink}
+            >
+              View object on Sui Explorer →
+            </a>
           </p>
         </div>
         <span className={styles.count}>{entryCount} entries</span>

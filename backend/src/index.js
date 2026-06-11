@@ -9,9 +9,10 @@ import { storeAuditBlob } from './walrus.js';
 import { log } from './logger.js';
 
 // ── Mutable runtime config ─────────────────────────────────────────────────
-let currentThresholds   = { ...CONFIG.thresholds };
+let currentThresholds    = { ...CONFIG.thresholds };
 let currentLtvTightenBps = 500;   // how many bps to reduce LTV when tighten fires
-let currentWebhookUrl   = '';     // POST target for notify-level alerts
+let currentWebhookUrl    = '';    // POST target for notify-level alerts
+let lastTxDigest         = null;  // digest of the most recent on-chain action
 
 // ── Polling state ──────────────────────────────────────────────────────────
 let latestPriceAnalysis = { deviationPct: 0, isStale: false, staleSecs: 0, price: 0, twap: 0 };
@@ -139,6 +140,7 @@ async function decide() {
   }
 
   executing = true;
+  let txDigest = null;
 
   try {
     let result;
@@ -153,6 +155,8 @@ async function decide() {
     }
 
     if (result) {
+      txDigest     = result.digest;
+      lastTxDigest = result.digest;
       await storeAuditBlob({
         digest:          result.digest,
         action:          result.actionType,
@@ -172,6 +176,8 @@ async function decide() {
   } finally {
     executing = false;
   }
+
+  return txDigest;
 }
 
 // ── API ────────────────────────────────────────────────────────────────────
@@ -193,11 +199,12 @@ app.get('/health', (_req, res) => {
 
 app.get('/status', (_req, res) => {
   res.json({
-    score:      latestScore,
-    guardian:   guardianEnabled,
-    price:      latestPriceAnalysis,
-    chain:      latestChainState,
-    thresholds: currentThresholds,
+    score:        latestScore,
+    guardian:     guardianEnabled,
+    price:        latestPriceAnalysis,
+    chain:        latestChainState,
+    thresholds:   currentThresholds,
+    lastTxDigest,
     config: {
       thresholds:     currentThresholds,
       ltvTightenBps:  currentLtvTightenBps,
@@ -251,6 +258,44 @@ app.post('/config', (req, res) => {
       webhookUrl:    currentWebhookUrl ? '(set)' : '',
     },
   });
+});
+
+// ── Demo endpoints ────────────────────────────────────────────────────────
+// Inject exploit-like state and immediately run the decision loop so a real
+// on-chain transaction fires during the simulation demo.
+app.post('/demo/inject', async (req, res) => {
+  const { priceDevPct = 22, poolDropPct = 55, oracleStale = true } = req.body ?? {};
+
+  if (!guardianEnabled) {
+    return res.status(400).json({ error: 'Guardian is disabled on-chain. Enable it first from the Config panel.' });
+  }
+  if (latestChainState.paused) {
+    return res.status(400).json({ error: 'Protocol is already paused. Unpause from the Config panel first.' });
+  }
+  if (executing) {
+    return res.status(409).json({ error: 'A transaction is already in progress. Try again in a moment.' });
+  }
+
+  resetLastAction();
+
+  latestPriceAnalysis = {
+    ...latestPriceAnalysis,
+    deviationPct: Number(priceDevPct),
+    isStale:      Boolean(oracleStale),
+    staleSecs:    oracleStale ? 45 : 0,
+  };
+  latestChainState = {
+    ...latestChainState,
+    poolDropPct: Number(poolDropPct),
+  };
+
+  const digest = await decide();
+  res.json({ ok: true, score: latestScore, digest: digest ?? null });
+});
+
+app.post('/demo/reset', (_req, res) => {
+  resetLastAction();
+  res.json({ ok: true });
 });
 
 // ── Startup ────────────────────────────────────────────────────────────────

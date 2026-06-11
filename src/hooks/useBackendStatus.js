@@ -19,11 +19,12 @@ export function useBackendStatus() {
   return {
     isPending,
     error,
-    score:           data?.score      ?? null,
-    guardianEnabled: data?.guardian   ?? null,
-    price:           data?.price      ?? null,
-    chain:           data?.chain      ?? null,
-    thresholds:      data?.thresholds ?? null,
-    config:          data?.config     ?? null,
+    score:           data?.score         ?? null,
+    guardianEnabled: data?.guardian      ?? null,
+    price:           data?.price         ?? null,
+    chain:           data?.chain         ?? null,
+    thresholds:      data?.thresholds    ?? null,
+    config:          data?.config        ?? null,
+    lastTxDigest:    data?.lastTxDigest  ?? null,
   };
 }

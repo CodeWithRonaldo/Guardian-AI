@@ -6,9 +6,10 @@ const WEIGHTS = {
   priceDeviation:  30,  // Pyth price deviates >10% from TWAP
   priceDevSmall:   15,  // Pyth price deviates 3-10% from TWAP
   oracleStale:     20,  // Pyth publish_time > 30s ago
+  poolDrop50:      55,  // Pool balance dropped >50% since last poll — critical drain
   poolDrop20:      35,  // Pool balance dropped >20% since last poll
   poolDrop5:       15,  // Pool balance dropped 5-20%
-  poolAbsLow:      90,  // Pool balance critically low (<1% of baseline) — pause-level on its own
+  poolAbsLow:      90,  // Pool balance critically low (<5% of baseline) — pause-level on its own
   alreadyPaused:   10,  // Protocol paused flag already set on-chain
 };
 
@@ -37,7 +38,9 @@ export function computeRiskScore(priceAnalysis, chainState) {
   }
 
   // ── Pool balance drop (delta) ────────────────────
-  if (chainState.poolDropPct > 20) {
+  if (chainState.poolDropPct > 50) {
+    add(WEIGHTS.poolDrop50, `Pool balance dropped ${chainState.poolDropPct.toFixed(1)}% this interval`);
+  } else if (chainState.poolDropPct > 20) {
     add(WEIGHTS.poolDrop20, `Pool balance dropped ${chainState.poolDropPct.toFixed(1)}% this interval`);
   } else if (chainState.poolDropPct > 5) {
     add(WEIGHTS.poolDrop5, `Pool balance dropped ${chainState.poolDropPct.toFixed(1)}% this interval`);
@@ -46,7 +49,7 @@ export function computeRiskScore(priceAnalysis, chainState) {
   // ── Pool balance absolute low ────────────────────
   // Catches a drained pool even when the backend restarts after the drain.
   const poolPct = (chainState.poolBalance / POOL_BASELINE_MIST) * 100;
-  if (poolPct < 1) {
+  if (poolPct < 5) {
     add(WEIGHTS.poolAbsLow, `Pool critically low: ${poolPct.toFixed(2)}% of baseline (${(chainState.poolBalance / 1e9).toFixed(2)} SUI)`);
   }
 

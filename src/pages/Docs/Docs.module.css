@@ -1,0 +1,180 @@
+.page {
+  min-height: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 48px;
+  align-items: start;
+  max-width: 960px;
+}
+
+/* ── TOC ──────────────────────────────────────── */
+.toc {
+  position: sticky;
+  top: 24px;
+}
+
+.tocTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.tocLink {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 5px 0;
+  border-left: 2px solid var(--border);
+  padding-left: 12px;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.tocLink:hover {
+  color: var(--text-primary);
+  border-left-color: var(--accent);
+}
+
+/* ── Content ──────────────────────────────────── */
+.content {
+  padding-bottom: 80px;
+}
+
+.content section {
+  margin-bottom: 0;
+}
+
+.h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.6px;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.lead {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  margin-top: 36px;
+  margin-bottom: 12px;
+}
+
+.h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 28px;
+  margin-bottom: 10px;
+}
+
+.content p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+
+.list {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.list li {
+  margin-bottom: 5px;
+}
+
+/* ── Code ──────────────────────────────────────── */
+.inlineCode {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--accent);
+}
+
+.codeBlock {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  overflow-x: auto;
+  margin: 12px 0 16px;
+  white-space: pre;
+}
+
+/* ── Table ──────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0 20px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle, var(--border));
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: var(--bg-elevated);
+}
+
+/* ── Links ──────────────────────────────────────── */
+.explorerLink {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+
+.explorerLink:hover {
+  opacity: 0.75;
+}
