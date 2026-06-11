@@ -10,7 +10,7 @@ const SECTIONS = [
   { id: 'api',           label: 'Backend API' },
   { id: 'config-ref',    label: 'Configuration' },
   { id: 'security',      label: 'Security Model' },
-  { id: 'deployed',      label: 'Deployed Contracts' },
+  { id: 'deployed',      label: 'Live Demo' },
 ];
 
 export default function Docs() {
@@ -35,32 +35,38 @@ export default function Docs() {
           <section id="overview">
             <h1 className={styles.h1}>GuardianAI Documentation</h1>
             <p className={styles.lead}>
-              An autonomous on-chain risk guardian for DeFi protocols built on the Sui blockchain.
-              GuardianAI watches Pyth price feeds and on-chain events, scores risk continuously,
-              and fires protective circuit-breaker transactions autonomously — faster than any
-              human response chain.
+              GuardianAI is an open-source autonomous risk guardian for DeFi protocols on Sui.
+              It watches Pyth price feeds and on-chain state, scores risk in real time, and
+              fires protective circuit-breaker transactions autonomously — without waiting for
+              a human to respond.
             </p>
 
-            <h2 className={styles.h2}>The Problem</h2>
+            <h2 className={styles.h2}>Who this is for</h2>
             <p>
-              In October 2025, the Cetus DEX on Sui was exploited for $60 million. The contracts
-              were not broken — the response was too slow. By the time the team identified the
-              incident and could act, liquidity had already been drained.
+              GuardianAI is designed for protocol teams building on Sui who want automated
+              risk protection without giving up control. You integrate it by adding two
+              functions to your existing Move contract, running a lightweight Node.js backend,
+              and deploying the dashboard. Your team keeps full override capability at all times.
             </p>
+
+            <h2 className={styles.h2}>Why it exists</h2>
             <p>
-              Most DeFi protocols have emergency pause functions. None of them trigger automatically.
-              GuardianAI closes that gap.
+              In October 2025, Cetus DEX on Sui was exploited for $60 million. The contracts
+              were not broken — the response was too slow. By the time the team could act,
+              liquidity had already been drained. Most DeFi protocols have emergency pause
+              functions. None of them fire automatically. GuardianAI closes that gap.
             </p>
 
             <h2 className={styles.h2}>What it does</h2>
             <ul className={styles.list}>
               <li>Monitors Pyth oracle price feeds every 3 seconds</li>
-              <li>Reads on-chain protocol state every 4 seconds</li>
-              <li>Computes a weighted risk score from 0–100</li>
-              <li>Autonomously fires on-chain transactions when thresholds are crossed</li>
+              <li>Reads your protocol's on-chain state every 4 seconds</li>
+              <li>Computes a weighted risk score from 0–100 using observable signals</li>
+              <li>Autonomously fires on-chain transactions when configured thresholds are crossed</li>
               <li>Sends webhook alerts to Telegram, Discord, or any HTTP endpoint</li>
-              <li>Writes every action to an immutable on-chain audit log</li>
-              <li>Stores full diagnostic snapshots on Walrus for permanent records</li>
+              <li>Writes every action to an immutable on-chain audit log on your protocol</li>
+              <li>Stores full diagnostic snapshots on Walrus for permanent audit records</li>
+              <li>Gives your team a kill switch — one transaction disarms the agent instantly</li>
             </ul>
           </section>
 
@@ -246,9 +252,15 @@ Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
           <section id="integration">
             <h2 className={styles.h2}>Integration Guide</h2>
             <p>
-              Integrating GuardianAI into your protocol requires three things: adding circuit
-              breaker functions to your Move contract, initialising the guardian objects, and
-              running the backend agent pointed at your protocol.
+              Integrating GuardianAI into your protocol takes five steps. You add two circuit
+              breaker functions to your existing Move contract, run a one-time initialisation
+              to create the capability objects, deploy the backend agent, and point the
+              dashboard at your deployment. Each step is independent — you can integrate
+              the contracts first and add the backend later.
+            </p>
+            <p>
+              GuardianAI does not require you to modify your core protocol logic. The circuit
+              breakers are additive — your existing functions remain unchanged.
             </p>
 
             <h3 className={styles.h3}>Step 1 — Add circuit breakers to your Move contract</h3>
@@ -609,10 +621,16 @@ npm run build    # production build`}</CodeBlock>
 
           {/* DEPLOYED CONTRACTS */}
           <section id="deployed">
-            <h2 className={styles.h2}>Deployed Contracts (Sui Testnet)</h2>
+            <h2 className={styles.h2}>Live Demo Deployment</h2>
             <p>
-              The following objects are live on Sui testnet. The dashboard and backend are
-              configured to use these by default.
+              The following objects are the GuardianAI reference deployment on Sui testnet.
+              They power this dashboard and the demo backend. When you integrate GuardianAI
+              into your own protocol, you will deploy your own package and generate your own
+              object IDs — these are not shared across integrations.
+            </p>
+            <p>
+              You can inspect any of these objects directly on Sui Explorer to verify the
+              on-chain state, audit log entries, and guardian configuration.
             </p>
 
             <h3 className={styles.h3}>Package</h3>
@@ -662,16 +680,17 @@ npm run build    # production build`}</CodeBlock>
               </tbody>
             </table>
 
-            <h3 className={styles.h3}>Wallets</h3>
+            <h3 className={styles.h3}>Demo wallets</h3>
+            <p>These are the wallets used by the reference deployment. In your integration, the AdminCap goes to your protocol team wallet and the GuardianCap goes to the wallet your backend agent controls.</p>
             <table className={styles.table}>
               <thead><tr><th>Role</th><th>Address</th></tr></thead>
               <tbody>
                 <tr>
-                  <td>Protocol team (AdminCap holder)</td>
+                  <td>Demo protocol team (holds AdminCap)</td>
                   <td><ExplorerLink id="0xdab28dc254b0fd42f4cd4e69f1d057e45328209f2203dcea1e5b09f364dcf390" type="address" /></td>
                 </tr>
                 <tr>
-                  <td>Agent wallet (GuardianCap holder)</td>
+                  <td>Demo agent wallet (holds GuardianCap)</td>
                   <td><ExplorerLink id="0xc56efaa15e3f545c252f33b02ab80d6bcb91328a5304f724a5739d838bc81339" type="address" /></td>
                 </tr>
               </tbody>
