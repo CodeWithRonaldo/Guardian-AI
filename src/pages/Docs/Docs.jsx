@@ -2,6 +2,7 @@ import styles from './Docs.module.css';
 
 const SECTIONS = [
   { id: 'overview',      label: 'Overview' },
+  { id: 'limitations',   label: 'Limitations' },
   { id: 'architecture',  label: 'Architecture' },
   { id: 'risk-scoring',  label: 'Risk Scoring' },
   { id: 'integration',   label: 'Integration Guide' },
@@ -61,6 +62,69 @@ export default function Docs() {
               <li>Writes every action to an immutable on-chain audit log</li>
               <li>Stores full diagnostic snapshots on Walrus for permanent records</li>
             </ul>
+          </section>
+
+          <Divider />
+
+          {/* LIMITATIONS */}
+          <section id="limitations">
+            <h2 className={styles.h2}>Honest Limitations</h2>
+            <p>
+              GuardianAI is a powerful tool but not a silver bullet. Understanding what it
+              cannot do is as important as understanding what it can.
+            </p>
+
+            <h3 className={styles.h3}>It cannot stop the first polling window</h3>
+            <p>
+              The risk engine polls on-chain state every 4 seconds. If an attacker drains
+              a pool in under 4 seconds, that drain happens before the first detection cycle.
+              GuardianAI cannot prevent damage that occurs faster than its polling interval.
+            </p>
+            <p>
+              What it <em>can</em> do is stop everything after that window. On Sui, most
+              real exploits involve multiple sequential transactions — flash loan, price
+              manipulation, drain, exit. Pausing the protocol mid-sequence breaks the exit
+              path and protects remaining liquidity.
+            </p>
+
+            <h3 className={styles.h3}>Single signals may not be enough to trigger pause</h3>
+            <p>
+              A pool drop of 20% in one interval scores 35 points — below the pause threshold
+              of 85. The system is designed around <em>combined</em> signals: price deviation
+              plus pool drop plus oracle staleness is how a real exploit looks. A 20% pool drop
+              combined with Pyth price stress and a stale oracle reaches 85 and triggers pause.
+            </p>
+            <p>
+              The <Code>poolAbsLow</Code> signal (pool ≤5% of baseline → 90 points) is a
+              last-resort catch for catastrophic drain, not the primary protection mechanism.
+              It exists to protect against the case where the backend was down during the
+              initial attack and missed the delta signals.
+            </p>
+
+            <h3 className={styles.h3}>It is not pre-crime prevention</h3>
+            <p>
+              GuardianAI reacts to anomalies it can observe — price, pool balance, oracle
+              freshness. It cannot detect novel attack vectors, governance exploits, or
+              vulnerabilities in contract logic before they are triggered.
+            </p>
+
+            <h3 className={styles.h3}>The backend is a centralised component</h3>
+            <p>
+              The off-chain risk engine is a centralised process. If it goes down, autonomous
+              responses stop. The on-chain contracts remain functional — any wallet holding a
+              GuardianCap can still call circuit breakers manually. For production deployments,
+              running multiple backend instances with health monitoring is recommended.
+            </p>
+
+            <h3 className={styles.h3}>Why it is still valuable</h3>
+            <p>
+              The Cetus hack played out over <em>minutes</em> — not milliseconds. Human
+              response chains require someone to notice the exploit, verify it is real,
+              coordinate with the team, connect a wallet, and submit a transaction. GuardianAI
+              collapses that chain to one polling cycle. In a real attack combining price
+              deviation, pool drain, and oracle stress, the protocol pauses within 4–8 seconds
+              — with the majority of liquidity still intact.
+            </p>
           </section>
 
           <Divider />
@@ -130,16 +194,24 @@ Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
                 </tr>
               </thead>
               <tbody>
-                <tr><td>Price deviation (large)</td><td>Pyth price &gt;10% from TWAP</td><td>30</td></tr>
-                <tr><td>Price deviation (small)</td><td>Pyth price 3–10% from TWAP</td><td>15</td></tr>
-                <tr><td>Oracle stale</td><td>Pyth publish_time &gt;30s ago</td><td>20</td></tr>
-                <tr><td>Pool drop (catastrophic)</td><td>Pool balance dropped &gt;50% this interval</td><td>55</td></tr>
-                <tr><td>Pool drop (large)</td><td>Pool balance dropped &gt;20% this interval</td><td>35</td></tr>
-                <tr><td>Pool drop (small)</td><td>Pool balance dropped &gt;5% this interval</td><td>15</td></tr>
-                <tr><td>Pool critically low</td><td>Pool balance &lt;5% of baseline</td><td>90</td></tr>
-                <tr><td>Already paused</td><td>Protocol paused flag set on-chain</td><td>10</td></tr>
+                <tr><td>Price deviation (large)</td><td>Pyth price &gt;10% from TWAP</td><td className={styles.scoreCell}>30</td></tr>
+                <tr><td>Price deviation (small)</td><td>Pyth price 3–10% from TWAP</td><td className={styles.scoreCell}>15</td></tr>
+                <tr><td>Oracle stale</td><td>Pyth publish_time &gt;30s ago</td><td className={styles.scoreCell}>20</td></tr>
+                <tr><td>Pool drop (catastrophic)</td><td>Pool dropped &gt;50% in one 4s window</td><td className={styles.scoreCell}>55</td></tr>
+                <tr><td>Pool drop (large)</td><td>Pool dropped &gt;20% in one 4s window</td><td className={styles.scoreCell}>35</td></tr>
+                <tr><td>Pool drop (small)</td><td>Pool dropped &gt;5% in one 4s window</td><td className={styles.scoreCell}>15</td></tr>
+                <tr><td>Pool critically low</td><td>Pool balance ≤5% of baseline (last resort)</td><td className={styles.scoreCell}>90</td></tr>
+                <tr><td>Already paused</td><td>Protocol paused flag set on-chain</td><td className={styles.scoreCell}>10</td></tr>
               </tbody>
             </table>
+
+            <p>
+              Scores are additive and capped at 100. Pool drop signals are based on the
+              delta between polls — how much the balance changed in the last 4-second window,
+              not the total amount drained since launch. <Code>poolAbsLow</Code> is the
+              exception — it checks the absolute balance and acts as a last resort when the
+              backend restarts after a drain has already happened.
+            </p>
 
             <h3 className={styles.h3}>Example score combinations that trigger pause (≥ 85)</h3>
             <table className={styles.table}>

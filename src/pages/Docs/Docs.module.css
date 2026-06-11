@@ -1,19 +1,22 @@
 .page {
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 48px;
+  grid-template-columns: 180px 1fr;
+  gap: 40px;
   align-items: start;
-  max-width: 960px;
+  max-width: 880px;
+  width: 100%;
 }
 
 /* ── TOC ──────────────────────────────────────── */
 .toc {
   position: sticky;
   top: 24px;
+  min-width: 0;
 }
 
 .tocTitle {
@@ -45,6 +48,8 @@
 /* ── Content ──────────────────────────────────── */
 .content {
   padding-bottom: 80px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .content section {
@@ -163,6 +168,12 @@
 
 .table tr:hover td {
   background: var(--bg-elevated);
+}
+
+.scoreCell {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 /* ── Links ──────────────────────────────────────── */
