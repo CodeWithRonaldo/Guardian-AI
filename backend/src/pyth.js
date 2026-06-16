@@ -26,7 +26,7 @@ export async function fetchSuiPrice() {
   return { usdPrice, confidence, publishTime };
 }
 
-// Returns { price, twap, deviationPct, staleSecs, isStale }
+// Returns { price, twap, deviationPct, staleSecs, isStale, zScore, isAnomaly }
 export function analysePrice(reading) {
   const now = Math.floor(Date.now() / 1000);
 
@@ -38,5 +38,14 @@ export function analysePrice(reading) {
   const staleSecs    = now - reading.publishTime;
   const isStale      = staleSecs > 30;
 
-  return { price: reading.usdPrice, twap, deviationPct, staleSecs, isStale };
+  // Z-score: standard deviations the current price is from the rolling mean.
+  // Requires at least 5 readings so the std dev is meaningful.
+  let zScore = 0;
+  if (priceHistory.length >= 5) {
+    const variance = priceHistory.reduce((sum, p) => sum + (p - twap) ** 2, 0) / priceHistory.length;
+    const stdDev   = Math.sqrt(variance);
+    zScore = stdDev > 0 ? Math.abs(reading.usdPrice - twap) / stdDev : 0;
+  }
+
+  return { price: reading.usdPrice, twap, deviationPct, staleSecs, isStale, zScore, isAnomaly: zScore > 2.5 };
 }

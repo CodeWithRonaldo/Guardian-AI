@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import RiskGauge from '../../components/RiskGauge/RiskGauge';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
@@ -38,14 +38,16 @@ export default function Dashboard() {
     ? backend.score
     : protocol.paused ? 88 : 0;
 
-  // Chart data: last 20 action log entries as risk score history
-  const chartData = useMemo(
-    () => log.entries.slice(-20).map((e, i) => ({
-      t: i,
-      score: e.riskScore,
-    })),
-    [log.entries],
-  );
+  // Accumulate live score on every backend poll (every 4s).
+  // Keeps the last 60 points = ~4 minutes of history.
+  const [scoreHistory, setScoreHistory] = useState([]);
+  useEffect(() => {
+    if (backend.score === null || !backend.dataUpdatedAt) return;
+    setScoreHistory(prev => {
+      const next = [...prev, { t: backend.dataUpdatedAt, score: backend.score }];
+      return next.length > 60 ? next.slice(-60) : next;
+    });
+  }, [backend.dataUpdatedAt]);
 
   const pVariant = protocolVariant(protocol.paused, riskScore);
 
@@ -80,7 +82,14 @@ export default function Dashboard() {
         <div className={styles.statsGrid}>
           <Stat label="Protocol" value={protocol.name ?? '—'} />
           <Stat label="Status" value={<StatusBadge variant={pVariant} />} raw />
-          <Stat label="SUI/USD"      value={backend.price?.price ? `$${backend.price.price.toFixed(4)}` : '—'} mono />
+          <Stat label="Pyth SUI/USD"     value={backend.price?.price ? `$${backend.price.price.toFixed(4)}` : '—'} mono />
+          <Stat label="Deepbook SUI/USD" value={backend.deepbookPrice !== null ? `$${backend.deepbookPrice.toFixed(4)}` : '—'} mono />
+          <Stat
+            label="AI Z-Score"
+            value={backend.price?.zScore !== undefined ? `${backend.price.zScore.toFixed(2)}σ` : '—'}
+            mono
+            danger={backend.price?.isAnomaly}
+          />
           <Stat label="LTV Ratio"    value={formatLtv(protocol.ltvRatio)} mono />
           <Stat label="Pool Balance" value={formatBalance(protocol.poolBalance)} mono />
           <Stat label="Guardian"     value={config.enabled === null ? '—' : config.enabled ? 'Enabled' : 'Disabled'} />
@@ -90,19 +99,22 @@ export default function Dashboard() {
 
       {/* Risk score history chart */}
       <Card title="Risk Score History" className={styles.chartCard}>
-        {chartData.length === 0 ? (
-          <p className={styles.empty}>No action log entries yet. Run a simulation to populate this chart.</p>
+        {scoreHistory.length === 0 ? (
+          <p className={styles.empty}>Collecting score history — updates every 4 seconds.</p>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={chartData}>
-              <XAxis dataKey="t" hide />
+            <LineChart data={scoreHistory}>
+              <XAxis
+                dataKey="t"
+                hide
+              />
               <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} width={28} />
               <Tooltip
                 contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8 }}
                 labelStyle={{ color: 'var(--text-secondary)' }}
                 itemStyle={{ color: 'var(--accent)' }}
                 formatter={(v) => [v, 'Risk Score']}
-                labelFormatter={() => ''}
+                labelFormatter={(ts) => new Date(ts).toLocaleTimeString()}
               />
               <Line
                 type="monotone"
@@ -111,6 +123,7 @@ export default function Dashboard() {
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, fill: 'var(--accent)' }}
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -168,14 +181,19 @@ export default function Dashboard() {
   );
 }
 
-function Stat({ label, value, mono, raw }) {
+function Stat({ label, value, mono, raw, danger }) {
   return (
     <div className={styles.stat}>
       <span className={styles.statLabel}>{label}</span>
       {raw ? (
         <span className={styles.statValue}>{value}</span>
       ) : (
-        <span className={`${styles.statValue} ${mono ? styles.mono : ''}`}>{value}</span>
+        <span
+          className={`${styles.statValue} ${mono ? styles.mono : ''}`}
+          style={danger ? { color: 'var(--danger)' } : undefined}
+        >
+          {value}
+        </span>
       )}
     </div>
   );

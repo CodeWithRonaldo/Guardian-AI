@@ -8,7 +8,7 @@ async function fetchStatus() {
 }
 
 export function useBackendStatus() {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, dataUpdatedAt } = useQuery({
     queryKey:      ['backendStatus'],
     queryFn:       fetchStatus,
     refetchInterval: 4_000,
@@ -19,12 +19,14 @@ export function useBackendStatus() {
   return {
     isPending,
     error,
-    score:           data?.score         ?? null,
-    guardianEnabled: data?.guardian      ?? null,
-    price:           data?.price         ?? null,
-    chain:           data?.chain         ?? null,
-    thresholds:      data?.thresholds    ?? null,
-    config:          data?.config        ?? null,
-    lastTxDigest:    data?.lastTxDigest  ?? null,
+    dataUpdatedAt,
+    score:           data?.score             ?? null,
+    guardianEnabled: data?.guardian          ?? null,
+    price:           data?.price             ?? null,
+    deepbookPrice:   data?.deepbookPrice     ?? null,
+    chain:           data?.chain             ?? null,
+    thresholds:      data?.thresholds        ?? null,
+    config:          data?.config            ?? null,
+    lastTxDigest:    data?.lastTxDigest      ?? null,
   };
 }

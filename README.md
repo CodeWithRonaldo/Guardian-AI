@@ -25,12 +25,12 @@ GuardianAI has three layers:
 **1. Move Contracts (on-chain trust layer)**
 - `guardian_ai::cap` — `GuardianCap` (agent permission object) and `AdminCap` (human override). The agent's permissions are type-enforced by the Move VM.
 - `guardian_ai::action_log` — Shared append-only object. Every action is written here permanently with a timestamp, risk score, and reason.
-- `guardian_ai::test_protocol` — Mock DeFi protocol for testnet demos.
+- `guardian_ai::test_protocol` — Reference lending protocol that ships with the package so the demo is fully self-contained on testnet. This is the exact interface a real protocol team would add to their own contract — two circuit breaker functions and two admin overrides. See [Integrating GuardianAI Into Your Protocol](#integrating-guardianai-into-your-protocol) for how to drop this into an existing Sui lending protocol.
 
 **2. Risk Engine (off-chain autonomous agent)**
 - Node.js backend polling Pyth Hermes API every 3 seconds
 - Reads on-chain protocol state every 4 seconds
-- Rule-based weighted risk scorer (0–100)
+- Weighted risk scorer (0–100) combining rule-based circuit breaker signals with a statistical AI anomaly detector (z-score over a rolling 60-second window)
 - Builds and signs PTBs using the agent keypair
 - Sends webhook alerts to Telegram, Discord, or any HTTP endpoint
 - Stores full diagnostic snapshots on Walrus after every on-chain action
@@ -44,12 +44,14 @@ GuardianAI has three layers:
 
 ## Risk Scoring
 
-Scores are additive and capped at 100. The scorer is rule-based by design — every decision is fully auditable and explainable.
+Scores are additive and capped at 100. The engine combines rule-based circuit breakers with a statistical AI anomaly detector — every signal is auditable and explainable.
 
 | Signal | Condition | Weight |
 |---|---|---|
 | Price deviation (large) | Pyth price >10% from TWAP | 30 |
 | Price deviation (small) | Pyth price 3–10% from TWAP | 15 |
+| AI anomaly | Price >2.5 standard deviations from rolling mean (z-score) | 20 |
+| DEX-Oracle divergence | Deepbook on-chain mid-price diverges >20% from Pyth oracle | 25 |
 | Oracle stale | No Pyth update in >30s | 20 |
 | Pool drop (catastrophic) | Pool dropped >50% this poll | 55 |
 | Pool drop (large) | Pool dropped >20% this poll | 35 |
@@ -77,58 +79,32 @@ Scores are additive and capped at 100. The scorer is rule-based by design — ev
 
 ---
 
-## Quick Start
+## Running the Demo
+
+The demo is live at the URLs above and uses the reference deployment on Sui testnet. To run it locally:
 
 ### Prerequisites
 - Node.js 18+
 - Sui CLI
-- A Sui wallet with testnet SUI
 
 ### Frontend
 
 ```bash
 npm install
-```
-
-Create `.env` in the project root:
-
-```
-VITE_PACKAGE_ID=0x50b1a7151841d91039798ceabf37fb2bac34810d789e410e8a27f06e44ac9b2d
-VITE_PROTOCOL_ID=0x53096d53e284b88eb7e72e4f41d8da8bb5025b7d9a6d7834a3be9c9f5d445893
-VITE_ACTION_LOG_ID=0xb48afb54dc8ea14e2674e2ebd5b0fb67504b10547cb7e4516da8f1e39231f827
-VITE_GUARDIAN_CONFIG_ID=0x9be0eec7ca3b0dfbdafd2671a062c1282ac8ea122ecfa11720f4bf29da1bba51
-VITE_ADMIN_CAP_ID=0xc7010bd2474b542bf9c3a3d1ddbf14a55769b26eb3dcf3d877207265be42e757
-VITE_GUARDIAN_CAP_ID=0xaae3c4356b61dd5c35e3835f95afae0b9d549506af30a7f90d99e561b8a9df3c
-VITE_BACKEND_URL=https://guardian-ai-7ujt.onrender.com
-VITE_NETWORK=testnet
-```
-
-```bash
 npm run dev
 ```
+
+The frontend reads object IDs from `.env`. A pre-configured `.env` for the reference deployment is in `.env.example`.
 
 ### Backend
 
 ```bash
 cd backend
 npm install
-```
-
-Create `backend/.env`:
-
-```
-AGENT_PRIVATE_KEY=suiprivkey1...
-PACKAGE_ID=0x50b1a7151841d91039798ceabf37fb2bac34810d789e410e8a27f06e44ac9b2d
-PROTOCOL_ID=0x53096d53e284b88eb7e72e4f41d8da8bb5025b7d9a6d7834a3be9c9f5d445893
-ACTION_LOG_ID=0xb48afb54dc8ea14e2674e2ebd5b0fb67504b10547cb7e4516da8f1e39231f827
-GUARDIAN_CONFIG_ID=0x9be0eec7ca3b0dfbdafd2671a062c1282ac8ea122ecfa11720f4bf29da1bba51
-GUARDIAN_CAP_ID=0xaae3c4356b61dd5c35e3835f95afae0b9d549506af30a7f90d99e561b8a9df3c
-SUI_RPC_URL=https://fullnode.testnet.sui.io:443
-```
-
-```bash
 node src/index.js
 ```
+
+The backend requires a `backend/.env` with the agent private key and object IDs. See `.env.example` in the `backend/` folder.
 
 Health check: `GET /health`
 
@@ -136,41 +112,119 @@ Health check: `GET /health`
 
 ## Integrating GuardianAI Into Your Protocol
 
-Add two circuit breaker functions to your Move contract:
+GuardianAI is designed to be integrated into any existing Sui DeFi protocol. Each protocol gets its own deployment — there are no shared objects between integrations.
+
+### Step 1 — Add circuit breakers to your Move contract
+
+Add these two functions to your existing contract. The `assert_active` call checks the enabled flag — if the guardian is disabled by the admin, the call aborts before any state changes.
 
 ```move
 use guardian_ai::cap::{Self, GuardianCap, GuardianConfig};
 use guardian_ai::action_log::{Self, ActionLog};
+use sui::clock::Clock;
+use std::string::String;
 
 public fun pause_protocol(
     cap:        &GuardianCap,
     config:     &GuardianConfig,
     protocol:   &mut YourProtocol,
     log:        &mut ActionLog,
-    clock:      &sui::clock::Clock,
+    clock:      &Clock,
     risk_score: u8,
-    reason:     std::string::String,
+    reason:     String,
 ) {
     cap::assert_active(cap, config);
     protocol.paused = true;
     action_log::append(log, clock, risk_score, action_log::pause(), reason);
 }
+
+public fun tighten_ltv(
+    cap:        &GuardianCap,
+    config:     &GuardianConfig,
+    protocol:   &mut YourProtocol,
+    log:        &mut ActionLog,
+    clock:      &Clock,
+    new_ltv:    u64,
+    risk_score: u8,
+    reason:     String,
+) {
+    cap::assert_active(cap, config);
+    assert!(new_ltv < protocol.ltv_ratio, EInvalidLtv);
+    protocol.ltv_ratio = new_ltv;
+    action_log::append(log, clock, risk_score, action_log::tighten_ltv(), reason);
+}
 ```
 
-Then initialise the guardian objects (one-time):
+### Step 2 — Initialise the guardian (one-time)
+
+Run this from the protocol team wallet. Replace `<AGENT_WALLET>` with the address of the wallet the backend agent will use.
 
 ```bash
 sui client call \
   --package <GUARDIAN_AI_PACKAGE_ID> \
   --module cap \
   --function initialize \
-  --args <YOUR_AGENT_WALLET_ADDRESS> \
+  --args <AGENT_WALLET> \
   --gas-budget 10000000
 ```
 
-This creates a `GuardianCap` (→ agent wallet), `AdminCap` (→ your wallet), and `GuardianConfig` (shared). Point the backend `.env` at your new object IDs and start the agent.
+This creates three objects:
+- `GuardianCap` — transferred to the agent wallet
+- `AdminCap` — transferred to the transaction sender (the protocol team)
+- `GuardianConfig` — shared object, readable by anyone on-chain
 
-Full integration guide: see the **Docs** page in the dashboard.
+Also create the shared ActionLog:
+
+```bash
+sui client call \
+  --package <GUARDIAN_AI_PACKAGE_ID> \
+  --module action_log \
+  --function create_and_share \
+  --gas-budget 10000000
+```
+
+### Step 3 — Configure the backend
+
+Create `backend/.env` with the object IDs generated in the previous step:
+
+```
+AGENT_PRIVATE_KEY=suiprivkey1...        # private key for the agent wallet
+PACKAGE_ID=<GUARDIAN_AI_PACKAGE_ID>
+PROTOCOL_ID=<YOUR_PROTOCOL_OBJECT_ID>
+ACTION_LOG_ID=<YOUR_ACTION_LOG_ID>
+GUARDIAN_CONFIG_ID=<YOUR_GUARDIAN_CONFIG_ID>
+GUARDIAN_CAP_ID=<YOUR_GUARDIAN_CAP_ID>
+SUI_RPC_URL=https://fullnode.testnet.sui.io:443
+```
+
+```bash
+cd backend && npm install && node src/index.js
+```
+
+### Step 4 — Configure the dashboard
+
+Create `.env` in the project root:
+
+```
+VITE_PACKAGE_ID=<GUARDIAN_AI_PACKAGE_ID>
+VITE_PROTOCOL_ID=<YOUR_PROTOCOL_OBJECT_ID>
+VITE_ACTION_LOG_ID=<YOUR_ACTION_LOG_ID>
+VITE_GUARDIAN_CONFIG_ID=<YOUR_GUARDIAN_CONFIG_ID>
+VITE_ADMIN_CAP_ID=<YOUR_ADMIN_CAP_ID>
+VITE_GUARDIAN_CAP_ID=<YOUR_GUARDIAN_CAP_ID>
+VITE_BACKEND_URL=https://your-backend-url.com
+VITE_NETWORK=testnet
+```
+
+```bash
+npm install && npm run dev
+```
+
+### Step 5 — Configure thresholds
+
+Open the Configuration panel in the dashboard. Set the Notify, Tighten LTV, and Pause thresholds to match the protocol's risk tolerance. Optionally add a Telegram or Discord webhook URL for instant alerts. Changes take effect immediately — no backend restart needed.
+
+Full integration reference: see the **Docs** tab in the dashboard.
 
 ---
 
@@ -192,7 +246,7 @@ The `AdminCap` is the kill switch. Calling `cap::disable` instantly disarms the 
 │   └── sources/
 │       ├── cap.move           # GuardianCap, AdminCap, GuardianConfig
 │       ├── action_log.move    # On-chain audit log
-│       └── test_protocol.move # Mock protocol for demos
+│       └── test_protocol.move # Reference lending protocol (self-contained testnet demo)
 ├── backend/
 │   └── src/
 │       ├── index.js           # Express server, decision loop, API
@@ -214,8 +268,22 @@ The `AdminCap` is the kill switch. Calling `cap::disable` instantly disarms the 
 
 ## Hackathon Tracks
 
-- **Agentic Web — Autonomous Risk Guardian:** Live Pyth price feed, autonomous on-chain circuit breakers via Move capability objects, human override via AdminCap.
-- **Walrus:** Full diagnostic snapshots stored on Walrus after every guardian action — immutable, decentralised audit trail.
+### Agentic Web — Autonomous Risk Guardian
+
+Every required element is present and live on testnet:
+
+| Requirement | How GuardianAI satisfies it |
+|---|---|
+| Live price feed | Pyth Hermes API (off-chain oracle) + Deepbook on-chain order book (SUI/DBUSDC pool). Both polled every 4 seconds. |
+| AI risk score | Weighted scorer combining rule-based signals with a z-score statistical anomaly detector. The z-score adapts to market volatility: a 3% move during a calm market fires the anomaly signal; the same move during high volatility does not. |
+| Autonomous on-chain action | Two actions: `tighten_ltv` (parameter adjustment) and `pause_protocol` (market halt). Both fire via PTBs signed by the agent — no human in the loop. |
+| Move policy object | `GuardianCap` — a Move object owned by the agent wallet. Every circuit breaker function requires it as a parameter. If the agent doesn't hold it, the Move VM aborts the transaction. The agent's scope is type-enforced, not just checked at runtime. |
+| Human override | `AdminCap` held by the protocol team. Calling `cap::disable` instantly prevents the agent from taking any further action. The dashboard Configuration panel provides one-click disable, enable, and unpause. |
+| Every action logged on-chain | `ActionLog` is a shared, append-only Sui object. Every action — autonomous and manual — is written with a timestamp, risk score, action code, and plain-English reason. Readable by anyone, forever. |
+
+### Walrus
+
+After every on-chain guardian action, a full diagnostic snapshot is written to Walrus — Pyth price, TWAP, z-score, pool balance, LTV, action taken, and transaction digest. The on-chain `ActionLog` is the source of truth; the Walrus blob carries the extended context that would otherwise be lost.
 
 ---
 

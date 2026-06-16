@@ -3,20 +3,22 @@
 // Weights are tuned for testnet demo — adjust before mainnet.
 
 const WEIGHTS = {
-  priceDeviation:  30,  // Pyth price deviates >10% from TWAP
-  priceDevSmall:   15,  // Pyth price deviates 3-10% from TWAP
-  oracleStale:     20,  // Pyth publish_time > 30s ago
-  poolDrop50:      55,  // Pool balance dropped >50% since last poll — critical drain
-  poolDrop20:      35,  // Pool balance dropped >20% since last poll
-  poolDrop5:       15,  // Pool balance dropped 5-20%
-  poolAbsLow:      90,  // Pool balance critically low (<5% of baseline) — pause-level on its own
-  alreadyPaused:   10,  // Protocol paused flag already set on-chain
+  priceDeviation:     30,  // Pyth price deviates >10% from TWAP
+  priceDevSmall:      15,  // Pyth price deviates 3-10% from TWAP
+  priceAnomaly:       20,  // AI: current price >2.5 standard deviations from rolling mean
+  deepbookDivergence: 25,  // Deepbook DEX mid-price diverges >20% from Pyth oracle
+  oracleStale:        20,  // Pyth publish_time > 30s ago
+  poolDrop50:         55,  // Pool balance dropped >50% since last poll — critical drain
+  poolDrop20:         35,  // Pool balance dropped >20% since last poll
+  poolDrop5:          15,  // Pool balance dropped 5-20%
+  poolAbsLow:         90,  // Pool balance critically low (<5% of baseline) — pause-level on its own
+  alreadyPaused:      10,  // Protocol paused flag already set on-chain
 };
 
 // Baseline pool balance set at launch of the test_protocol (10_000 SUI in MIST)
 const POOL_BASELINE_MIST = 10_000_000_000_000;
 
-export function computeRiskScore(priceAnalysis, chainState) {
+export function computeRiskScore(priceAnalysis, chainState, deepbookPrice = null) {
   const signals = [];
   let score = 0;
 
@@ -30,6 +32,23 @@ export function computeRiskScore(priceAnalysis, chainState) {
     add(WEIGHTS.priceDeviation, `Price deviation ${priceAnalysis.deviationPct.toFixed(1)}% from TWAP`);
   } else if (priceAnalysis.deviationPct > 3) {
     add(WEIGHTS.priceDevSmall, `Price deviation ${priceAnalysis.deviationPct.toFixed(1)}% from TWAP`);
+  }
+
+  // ── Statistical anomaly (AI signal) ─────────────
+  if (priceAnalysis.isAnomaly) {
+    add(WEIGHTS.priceAnomaly, `AI anomaly: ${priceAnalysis.zScore.toFixed(2)}σ from rolling mean`);
+  }
+
+  // ── Deepbook DEX vs Pyth oracle divergence ───────
+  // Fires when the on-chain DEX mid-price diverges >20% from the Pyth oracle price.
+  // This detects oracle manipulation or a flash crash that has not yet moved the DEX.
+  if (deepbookPrice !== null && deepbookPrice > 0 && priceAnalysis.price > 0) {
+    const divergencePct = Math.abs(priceAnalysis.price - deepbookPrice) / priceAnalysis.price * 100;
+    if (divergencePct > 20) {
+      add(WEIGHTS.deepbookDivergence,
+        `DEX-Oracle divergence: Pyth $${priceAnalysis.price.toFixed(3)} vs Deepbook $${deepbookPrice.toFixed(3)} (${divergencePct.toFixed(1)}%)`
+      );
+    }
   }
 
   // ── Oracle staleness ─────────────────────────────

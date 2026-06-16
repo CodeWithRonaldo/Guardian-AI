@@ -6,6 +6,7 @@ import { fetchProtocolState, fetchGuardianEnabled } from './chain.js';
 import { computeRiskScore, actionForScore } from './scorer.js';
 import { executePause, executeTightenLtv, shouldAct, resetLastAction } from './executor.js';
 import { storeAuditBlob } from './walrus.js';
+import { fetchDeepbookMidPrice } from './deepbook.js';
 import { log } from './logger.js';
 
 // ── Mutable runtime config ─────────────────────────────────────────────────
@@ -15,11 +16,12 @@ let currentWebhookUrl    = '';    // POST target for notify-level alerts
 let lastTxDigest         = null;  // digest of the most recent on-chain action
 
 // ── Polling state ──────────────────────────────────────────────────────────
-let latestPriceAnalysis = { deviationPct: 0, isStale: false, staleSecs: 0, price: 0, twap: 0 };
-let latestChainState    = { poolBalance: 0, ltvRatio: 8000, paused: false, poolDropPct: 0 };
-let latestScore         = 0;
-let guardianEnabled     = true;
-let executing           = false;
+let latestPriceAnalysis  = { deviationPct: 0, isStale: false, staleSecs: 0, price: 0, twap: 0, zScore: 0, isAnomaly: false };
+let latestChainState     = { poolBalance: 0, ltvRatio: 8000, paused: false, poolDropPct: 0 };
+let latestDeepbookPrice  = null;  // null = not yet fetched or failed
+let latestScore          = 0;
+let guardianEnabled      = true;
+let executing            = false;
 
 // ── Webhook notification ───────────────────────────────────────────────────
 // Supports three formats:
@@ -106,6 +108,15 @@ async function pollChain() {
   }
 }
 
+// ── Deepbook polling loop ──────────────────────────────────────────────────
+async function pollDeepbook() {
+  try {
+    latestDeepbookPrice = await fetchDeepbookMidPrice();
+  } catch (err) {
+    log.warn(`Deepbook poll failed: ${err.message}`);
+  }
+}
+
 // ── Decision loop ──────────────────────────────────────────────────────────
 async function decide() {
   if (!guardianEnabled) {
@@ -119,7 +130,7 @@ async function decide() {
     return;
   }
 
-  const { score, signals, reason } = computeRiskScore(latestPriceAnalysis, latestChainState);
+  const { score, signals, reason } = computeRiskScore(latestPriceAnalysis, latestChainState, latestDeepbookPrice);
   latestScore = score;
 
   log.info(`Risk score: ${score} | signals: ${signals.join(', ') || 'none'}`);
@@ -158,17 +169,19 @@ async function decide() {
       txDigest     = result.digest;
       lastTxDigest = result.digest;
       await storeAuditBlob({
-        digest:          result.digest,
-        action:          result.actionType,
-        riskScore:       score,
+        digest:           result.digest,
+        action:           result.actionType,
+        riskScore:        score,
         reason,
         signals,
-        priceUsd:        latestPriceAnalysis.price,
-        priceTwap:       latestPriceAnalysis.twap,
-        deviationPct:    latestPriceAnalysis.deviationPct,
-        poolBalance:     latestChainState.poolBalance,
-        ltvRatio:        latestChainState.ltvRatio,
-        ltvTightenBps:   currentLtvTightenBps,
+        priceUsd:         latestPriceAnalysis.price,
+        priceTwap:        latestPriceAnalysis.twap,
+        deviationPct:     latestPriceAnalysis.deviationPct,
+        priceZScore:      latestPriceAnalysis.zScore,
+        deepbookPriceUsd: latestDeepbookPrice,
+        poolBalance:      latestChainState.poolBalance,
+        ltvRatio:         latestChainState.ltvRatio,
+        ltvTightenBps:    currentLtvTightenBps,
       });
     }
   } catch (err) {
@@ -199,11 +212,12 @@ app.get('/health', (_req, res) => {
 
 app.get('/status', (_req, res) => {
   res.json({
-    score:        latestScore,
-    guardian:     guardianEnabled,
-    price:        latestPriceAnalysis,
-    chain:        latestChainState,
-    thresholds:   currentThresholds,
+    score:          latestScore,
+    guardian:       guardianEnabled,
+    price:          latestPriceAnalysis,
+    deepbookPrice:  latestDeepbookPrice,
+    chain:          latestChainState,
+    thresholds:     currentThresholds,
     lastTxDigest,
     config: {
       thresholds:     currentThresholds,
@@ -305,11 +319,13 @@ log.info(`Protocol: ${CONFIG.protocolId}`);
 
 await pollPyth();
 await pollChain();
+await pollDeepbook();
 await decide();
 
 setInterval(pollPyth, CONFIG.intervals.pyth);
 setInterval(async () => {
   await pollChain();
+  await pollDeepbook();
   await decide();
 }, CONFIG.intervals.chain);
 

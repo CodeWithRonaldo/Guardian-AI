@@ -321,9 +321,9 @@ guardian_ai = { local = "../guardian_ai" }
               This creates three objects:
             </p>
             <ul className={styles.list}>
-              <li><Code>GuardianCap</Code> — transferred to the agent wallet address you provide</li>
-              <li><Code>AdminCap</Code> — transferred to the transaction sender (you)</li>
-              <li><Code>GuardianConfig</Code> — shared, readable by anyone on-chain</li>
+              <li><Code>GuardianCap</Code> — transferred to the agent wallet address passed as argument</li>
+              <li><Code>AdminCap</Code> — transferred to the transaction sender (the protocol team wallet)</li>
+              <li><Code>GuardianConfig</Code> — shared object, readable by anyone on-chain</li>
             </ul>
             <CodeBlock>{`# Replace AGENT_WALLET_ADDRESS with your backend agent wallet
 sui client call \\
@@ -680,17 +680,20 @@ npm run build    # production build`}</CodeBlock>
               </tbody>
             </table>
 
-            <h3 className={styles.h3}>Demo wallets</h3>
-            <p>These are the wallets used by the reference deployment. In your integration, the AdminCap goes to your protocol team wallet and the GuardianCap goes to the wallet your backend agent controls.</p>
+            <h3 className={styles.h3}>Wallets</h3>
+            <p>
+              The AdminCap and GuardianCap are held by separate wallets — demonstrating the
+              separation between the protocol team (admin override) and the autonomous agent.
+            </p>
             <table className={styles.table}>
               <thead><tr><th>Role</th><th>Address</th></tr></thead>
               <tbody>
                 <tr>
-                  <td>Demo protocol team (holds AdminCap)</td>
+                  <td>Protocol team — holds AdminCap</td>
                   <td><ExplorerLink id="0xdab28dc254b0fd42f4cd4e69f1d057e45328209f2203dcea1e5b09f364dcf390" type="address" /></td>
                 </tr>
                 <tr>
-                  <td>Demo agent wallet (holds GuardianCap)</td>
+                  <td>Agent wallet — holds GuardianCap</td>
                   <td><ExplorerLink id="0xc56efaa15e3f545c252f33b02ab80d6bcb91328a5304f724a5739d838bc81339" type="address" /></td>
                 </tr>
               </tbody>
