@@ -315,6 +315,12 @@ public fun tighten_ltv(
 }`}</CodeBlock>
 
             <p>
+              Adapt the field access to match your own struct — rename <Code>protocol.paused</Code>,{' '}
+              <Code>protocol.ltv_ratio</Code>, and <Code>protocol.pool_balance</Code> to whatever
+              your struct actually uses. You will tell the backend what those names are in Step 3
+              via <Code>PAUSED_FIELD</Code>, <Code>LTV_FIELD</Code>, and <Code>POOL_BALANCE_FIELD</Code>.
+            </p>
+            <p>
               Add the guardian_ai package as a dependency in your <Code>Move.toml</Code>:
             </p>
             <CodeBlock>{`[dependencies]
@@ -350,6 +356,12 @@ sui client call \\
 
             <h3 className={styles.h3}>Step 3 — Run the backend</h3>
             <p>Clone the repository and create a <Code>.env</Code> file in <Code>backend/</Code>:</p>
+            <p>
+              <strong>Note:</strong> <Code>PACKAGE_ID</Code> here is <em>your protocol's package ID</em> —
+              the package that contains your circuit breaker functions and depends on guardian_ai.
+              It is not the guardian_ai package ID you used in Step 2. The guardian_ai package ID
+              was only needed for the one-time initialisation CLI commands.
+            </p>
             <CodeBlock>{`# Required
 AGENT_PRIVATE_KEY=suiprivkey1...      # agent wallet private key
 PACKAGE_ID=0x...                      # your package ID (must contain guardian_ai as a dependency)
