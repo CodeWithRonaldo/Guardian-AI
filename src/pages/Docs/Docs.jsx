@@ -60,8 +60,9 @@ export default function Docs() {
             <h2 className={styles.h2}>What it does</h2>
             <ul className={styles.list}>
               <li>Monitors Pyth oracle price feeds every 3 seconds</li>
+              <li>Reads the Deepbook on-chain order book (SUI/DBUSDC mid-price) every 4 seconds</li>
               <li>Reads your protocol's on-chain state every 4 seconds</li>
-              <li>Computes a weighted risk score from 0–100 using observable signals</li>
+              <li>Computes a weighted risk score from 0–100 using rule-based signals and a statistical AI anomaly detector</li>
               <li>Autonomously fires on-chain transactions when configured thresholds are crossed</li>
               <li>Sends webhook alerts to Telegram, Discord, or any HTTP endpoint</li>
               <li>Writes every action to an immutable on-chain audit log on your protocol</li>
@@ -149,12 +150,13 @@ export default function Docs() {
 
             <h3 className={styles.h3}>Layer 2 — Risk Engine (off-chain autonomous agent)</h3>
             <ul className={styles.list}>
-              <li>Node.js backend — polls Pyth Hermes API for SUI/USD price feeds</li>
-              <li>Subscribes to Sui on-chain events via RPC</li>
-              <li>Runs a rule-based weighted scorer every 4 seconds</li>
+              <li>Node.js backend — polls Pyth Hermes API for SUI/USD price feeds every 3 seconds</li>
+              <li>Reads Deepbook SUI/DBUSDC pool mid-price on-chain via <Code>devInspectTransactionBlock</Code> every 4 seconds</li>
+              <li>Reads protocol on-chain state every 4 seconds</li>
+              <li>Runs a weighted scorer combining rule-based circuit breaker signals with a z-score statistical anomaly detector</li>
               <li>Builds and signs Programmable Transaction Blocks using the agent keypair</li>
               <li>Sends webhook notifications for alert-level events</li>
-              <li>Stores audit blobs on Walrus after every on-chain action</li>
+              <li>Stores full diagnostic snapshots on Walrus after every on-chain action</li>
             </ul>
 
             <h3 className={styles.h3}>Layer 3 — Dashboard (visibility and control)</h3>
@@ -167,9 +169,10 @@ export default function Docs() {
             </ul>
 
             <h3 className={styles.h3}>Data flow</h3>
-            <CodeBlock>{`Pyth Hermes API ──► Risk Engine ──► score < 50  → log only
-Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
-                                 ──► score ≥ 70  → tighten_ltv tx
+            <CodeBlock>{`Pyth Hermes API  ──►
+                     Risk Engine ──► score < 50  → log only
+Deepbook (chain) ──►  (Node.js)  ──► score ≥ 50  → webhook alert
+Sui RPC (chain)  ──►             ──► score ≥ 70  → tighten_ltv tx
                                  ──► score ≥ 85  → pause_protocol tx
                                               │
                                               ▼
@@ -184,10 +187,11 @@ Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
           <section id="risk-scoring">
             <h2 className={styles.h2}>Risk Scoring</h2>
             <p>
-              The risk engine computes a score from 0–100 every 4 seconds using a weighted
-              rule-based system. Scores are additive and capped at 100. The approach is
-              intentionally rule-based rather than ML — every decision is fully auditable
-              and explainable.
+              The risk engine computes a score from 0–100 every 4 seconds. It combines
+              rule-based circuit breaker signals with a statistical AI anomaly detector.
+              Scores are additive and capped at 100. Every signal produces a plain-English
+              label that appears in the on-chain ActionLog and Walrus audit blob — every
+              decision is fully auditable and explainable.
             </p>
 
             <h3 className={styles.h3}>Signals and weights</h3>
@@ -202,6 +206,8 @@ Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
               <tbody>
                 <tr><td>Price deviation (large)</td><td>Pyth price &gt;10% from TWAP</td><td className={styles.scoreCell}>30</td></tr>
                 <tr><td>Price deviation (small)</td><td>Pyth price 3–10% from TWAP</td><td className={styles.scoreCell}>15</td></tr>
+                <tr><td>AI anomaly</td><td>Price &gt;2.5 standard deviations from 60s rolling mean (z-score)</td><td className={styles.scoreCell}>20</td></tr>
+                <tr><td>DEX-Oracle divergence</td><td>Deepbook mid-price diverges &gt;20% from Pyth oracle</td><td className={styles.scoreCell}>25</td></tr>
                 <tr><td>Oracle stale</td><td>Pyth publish_time &gt;30s ago</td><td className={styles.scoreCell}>20</td></tr>
                 <tr><td>Pool drop (catastrophic)</td><td>Pool dropped &gt;50% in one 4s window</td><td className={styles.scoreCell}>55</td></tr>
                 <tr><td>Pool drop (large)</td><td>Pool dropped &gt;20% in one 4s window</td><td className={styles.scoreCell}>35</td></tr>
@@ -227,6 +233,8 @@ Sui RPC (chain)  ──►  (Node.js)  ──► score ≥ 50  → webhook alert
               <tbody>
                 <tr><td>Full exploit (price + pool + oracle)</td><td>30 + 35 + 20</td><td>85</td></tr>
                 <tr><td>Flash drain + price stress</td><td>55 + 30</td><td>85</td></tr>
+                <tr><td>Oracle manipulation (AI + DEX divergence + stale)</td><td>20 + 25 + 20</td><td>65 → notify + tighten</td></tr>
+                <tr><td>Price anomaly + pool drain + DEX divergence</td><td>20 + 35 + 25</td><td>80 → tighten LTV</td></tr>
                 <tr><td>Pool critically low alone</td><td>90</td><td>90</td></tr>
               </tbody>
             </table>
@@ -458,7 +466,12 @@ npm run build    # production build`}</CodeBlock>
   "score": 12,
   "guardian": true,
   "lastTxDigest": "AbCd...",
-  "price": { "price": 3.1240, "twap": 3.1180, "deviationPct": 0.19, "isStale": false },
+  "price": {
+    "price": 3.1240, "twap": 3.1180, "deviationPct": 0.19,
+    "isStale": false, "staleSecs": 2,
+    "zScore": 1.42, "isAnomaly": false
+  },
+  "deepbookPrice": 3.0980,
   "chain": { "poolBalance": 10000000000000, "ltvRatio": 8000, "paused": false, "poolDropPct": 0 },
   "thresholds": { "notify": 50, "tightenLtv": 70, "pause": 85 },
   "config": { "thresholds": {...}, "ltvTightenBps": 500, "webhookUrl": "(set)" }
@@ -612,8 +625,8 @@ npm run build    # production build`}</CodeBlock>
               Every on-chain action writes an entry to the shared <Code>ActionLog</Code> object
               with a millisecond timestamp, risk score, action type, and reason string.
               Additionally, the backend stores a full diagnostic blob on Walrus after each
-              action — including Pyth price, TWAP, deviation percentage, pool balance, and
-              all active signals.
+              action — including Pyth price, TWAP, deviation percentage, z-score, Deepbook
+              mid-price, pool balance, LTV ratio, and all active signals.
             </p>
           </section>
 
