@@ -15,9 +15,9 @@ export async function fetchProtocolState() {
   const fields = obj.data?.content?.fields;
   if (!fields) throw new Error('Could not read Protocol object');
 
-  const poolBalance = Number(fields.pool_balance);
-  const ltvRatio    = Number(fields.ltv_ratio);
-  const paused      = Boolean(fields.paused);
+  const poolBalance = Number(fields[CONFIG.poolBalanceField] ?? 0);
+  const ltvRatio    = Number(fields[CONFIG.ltvField]         ?? 8000);
+  const paused      = Boolean(fields[CONFIG.pausedField]);
 
   // Pool balance delta since last poll
   let poolDropPct = 0;

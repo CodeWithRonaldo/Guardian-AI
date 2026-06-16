@@ -350,12 +350,24 @@ sui client call \\
 
             <h3 className={styles.h3}>Step 3 — Run the backend</h3>
             <p>Clone the repository and create a <Code>.env</Code> file in <Code>backend/</Code>:</p>
-            <CodeBlock>{`AGENT_PRIVATE_KEY=suiprivkey1...      # agent wallet private key
-PACKAGE_ID=0x...                      # guardian_ai package ID
+            <CodeBlock>{`# Required
+AGENT_PRIVATE_KEY=suiprivkey1...      # agent wallet private key
+PACKAGE_ID=0x...                      # your package ID (must contain guardian_ai as a dependency)
 PROTOCOL_ID=0x...                     # your Protocol shared object ID
 ACTION_LOG_ID=0x...                   # ActionLog shared object ID
 GUARDIAN_CONFIG_ID=0x...              # GuardianConfig shared object ID
 GUARDIAN_CAP_ID=0x...                 # GuardianCap object ID
+
+# Protocol integration — match these to your contract's module and field names
+PROTOCOL_MODULE=lending               # the Move module containing your circuit breakers
+PAUSE_FUNCTION=pause_market           # your pause function name
+TIGHTEN_LTV_FUNCTION=tighten_ltv      # your LTV tighten function name
+POOL_BALANCE_FIELD=total_liquidity    # the field name for pool balance in your Protocol object
+LTV_FIELD=ltv_bps                     # the field name for LTV ratio in your Protocol object
+PAUSED_FIELD=is_paused                # the field name for the paused flag
+POOL_BASELINE=50000000000000000       # expected pool size in MIST (used for the critically-low signal)
+
+# Optional
 SUI_RPC_URL=https://fullnode.testnet.sui.io:443`}</CodeBlock>
 
             <CodeBlock>{`cd backend
@@ -524,6 +536,13 @@ npm run build    # production build`}</CodeBlock>
                 <tr><td><Code>SUI_RPC_URL</Code></td><td>No</td><td>Defaults to <Code>https://fullnode.testnet.sui.io:443</Code>.</td></tr>
                 <tr><td><Code>PORT</Code></td><td>No</td><td>HTTP server port. Defaults to 3000.</td></tr>
                 <tr><td><Code>WALRUS_PUBLISHER_URL</Code></td><td>No</td><td>Walrus publisher endpoint. Defaults to testnet publisher.</td></tr>
+                <tr><td><Code>PROTOCOL_MODULE</Code></td><td>No</td><td>Move module containing your circuit breaker functions. Defaults to <Code>test_protocol</Code>.</td></tr>
+                <tr><td><Code>PAUSE_FUNCTION</Code></td><td>No</td><td>Name of your pause function. Defaults to <Code>pause_protocol</Code>.</td></tr>
+                <tr><td><Code>TIGHTEN_LTV_FUNCTION</Code></td><td>No</td><td>Name of your LTV tighten function. Defaults to <Code>tighten_ltv</Code>.</td></tr>
+                <tr><td><Code>POOL_BALANCE_FIELD</Code></td><td>No</td><td>Field name for pool balance in your Protocol object. Defaults to <Code>pool_balance</Code>.</td></tr>
+                <tr><td><Code>LTV_FIELD</Code></td><td>No</td><td>Field name for LTV ratio in your Protocol object. Defaults to <Code>ltv_ratio</Code>.</td></tr>
+                <tr><td><Code>PAUSED_FIELD</Code></td><td>No</td><td>Field name for the paused flag in your Protocol object. Defaults to <Code>paused</Code>.</td></tr>
+                <tr><td><Code>POOL_BASELINE</Code></td><td>No</td><td>Expected pool size in MIST. Used to compute the critically-low signal. Defaults to 10,000 SUI.</td></tr>
               </tbody>
             </table>
 

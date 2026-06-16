@@ -15,10 +15,7 @@ const WEIGHTS = {
   alreadyPaused:      10,  // Protocol paused flag already set on-chain
 };
 
-// Baseline pool balance set at launch of the test_protocol (10_000 SUI in MIST)
-const POOL_BASELINE_MIST = 10_000_000_000_000;
-
-export function computeRiskScore(priceAnalysis, chainState, deepbookPrice = null) {
+export function computeRiskScore(priceAnalysis, chainState, deepbookPrice = null, poolBaseline = 10_000_000_000_000) {
   const signals = [];
   let score = 0;
 
@@ -67,7 +64,7 @@ export function computeRiskScore(priceAnalysis, chainState, deepbookPrice = null
 
   // ── Pool balance absolute low ────────────────────
   // Catches a drained pool even when the backend restarts after the drain.
-  const poolPct = (chainState.poolBalance / POOL_BASELINE_MIST) * 100;
+  const poolPct = (chainState.poolBalance / poolBaseline) * 100;
   if (poolPct <= 5) {
     add(WEIGHTS.poolAbsLow, `Pool critically low: ${poolPct.toFixed(2)}% of baseline (${(chainState.poolBalance / 1e9).toFixed(2)} SUI)`);
   }

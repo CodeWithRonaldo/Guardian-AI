@@ -17,6 +17,16 @@ export const CONFIG = {
   walrusPublisher:   process.env.WALRUS_PUBLISHER_URL ?? 'https://publisher.walrus-testnet.walrus.space',
   port:              Number(process.env.PORT ?? 3000),
 
+  // Protocol-specific — override these when integrating into your own contract.
+  // Defaults match the guardian_ai::test_protocol reference implementation.
+  protocolModule:      process.env.PROTOCOL_MODULE       ?? 'test_protocol',
+  pauseFunction:       process.env.PAUSE_FUNCTION        ?? 'pause_protocol',
+  tightenLtvFunction:  process.env.TIGHTEN_LTV_FUNCTION  ?? 'tighten_ltv',
+  poolBalanceField:    process.env.POOL_BALANCE_FIELD     ?? 'pool_balance',
+  ltvField:            process.env.LTV_FIELD              ?? 'ltv_ratio',
+  pausedField:         process.env.PAUSED_FIELD           ?? 'paused',
+  poolBaseline:        Number(process.env.POOL_BASELINE   ?? '10000000000000'),
+
   // Risk thresholds — must match frontend constants
   thresholds: {
     notify:     50,

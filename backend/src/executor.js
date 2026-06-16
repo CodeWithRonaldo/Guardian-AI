@@ -45,7 +45,7 @@ export async function executePause(riskScore, reason) {
   const tx = new Transaction();
 
   tx.moveCall({
-    target:    `${CONFIG.packageId}::test_protocol::pause_protocol`,
+    target:    `${CONFIG.packageId}::${CONFIG.protocolModule}::${CONFIG.pauseFunction}`,
     arguments: [
       tx.object(CONFIG.guardianCapId),
       tx.object(CONFIG.guardianConfigId),
@@ -64,7 +64,7 @@ export async function executeTightenLtv(riskScore, reason, newLtv) {
   const tx = new Transaction();
 
   tx.moveCall({
-    target:    `${CONFIG.packageId}::test_protocol::tighten_ltv`,
+    target:    `${CONFIG.packageId}::${CONFIG.protocolModule}::${CONFIG.tightenLtvFunction}`,
     arguments: [
       tx.object(CONFIG.guardianCapId),
       tx.object(CONFIG.guardianConfigId),

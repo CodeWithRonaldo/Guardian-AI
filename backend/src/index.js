@@ -130,7 +130,7 @@ async function decide() {
     return;
   }
 
-  const { score, signals, reason } = computeRiskScore(latestPriceAnalysis, latestChainState, latestDeepbookPrice);
+  const { score, signals, reason } = computeRiskScore(latestPriceAnalysis, latestChainState, latestDeepbookPrice, CONFIG.poolBaseline);
   latestScore = score;
 
   log.info(`Risk score: ${score} | signals: ${signals.join(', ') || 'none'}`);
