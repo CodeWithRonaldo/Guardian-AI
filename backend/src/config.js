@@ -8,6 +8,7 @@ function required(name) {
 
 export const CONFIG = {
   agentPrivateKey:   required('AGENT_PRIVATE_KEY'),
+  anthropicApiKey:   process.env.ANTHROPIC_API_KEY ?? '', // optional — enables AI-generated reason strings
   suiRpcUrl:         process.env.SUI_RPC_URL ?? 'https://fullnode.testnet.sui.io:443',
   packageId:         required('PACKAGE_ID'),
   protocolId:        required('PROTOCOL_ID'),
@@ -22,6 +23,7 @@ export const CONFIG = {
   protocolModule:      process.env.PROTOCOL_MODULE       ?? 'test_protocol',
   pauseFunction:       process.env.PAUSE_FUNCTION        ?? 'pause_protocol',
   tightenLtvFunction:  process.env.TIGHTEN_LTV_FUNCTION  ?? 'tighten_ltv',
+  restoreLtvFunction:  process.env.RESTORE_LTV_FUNCTION  ?? 'restore_ltv',
   poolBalanceField:    process.env.POOL_BALANCE_FIELD     ?? 'pool_balance',
   ltvField:            process.env.LTV_FIELD              ?? 'ltv_ratio',
   pausedField:         process.env.PAUSED_FIELD           ?? 'paused',

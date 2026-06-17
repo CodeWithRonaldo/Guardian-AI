@@ -85,8 +85,12 @@ export default function Dashboard() {
           <Stat label="Pyth SUI/USD"     value={backend.price?.price ? `$${backend.price.price.toFixed(4)}` : '—'} mono />
           <Stat label="Deepbook SUI/USD" value={backend.deepbookPrice !== null ? `$${backend.deepbookPrice.toFixed(4)}` : '—'} mono />
           <Stat
-            label="AI Z-Score"
-            value={backend.price?.zScore !== undefined ? `${backend.price.zScore.toFixed(2)}σ` : '—'}
+            label="AI Anomaly Detector"
+            value={
+              backend.price?.zScore !== undefined
+                ? `${backend.price.zScore.toFixed(2)}σ${backend.price.isAnomaly ? ' ⚠' : ''}`
+                : '—'
+            }
             mono
             danger={backend.price?.isAnomaly}
           />
@@ -96,6 +100,18 @@ export default function Dashboard() {
           <Stat label="Log entries"  value={log.entryCount} mono />
         </div>
       </div>
+
+      {/* AI anomaly banner — only visible when the statistical detector fires */}
+      {backend.price?.isAnomaly && (
+        <div className={styles.anomalyBanner}>
+          <span className={styles.anomalyDot} />
+          AI Anomaly Detected
+          <span className={styles.anomalyDetail}>
+            — SUI/USD is {backend.price.zScore?.toFixed(2)}σ from the 60-second rolling mean
+            (threshold: 2.5σ). Score contribution: +20.
+          </span>
+        </div>
+      )}
 
       {/* Risk score history chart */}
       <Card title="Risk Score History" className={styles.chartCard}>
@@ -162,6 +178,19 @@ export default function Dashboard() {
                   className={styles.txLink}
                 >
                   {backend.lastTxDigest.slice(0, 20)}… View on Sui Explorer →
+                </a>
+              </div>
+            )}
+            {backend.lastWalrusBlobId && (
+              <div className={styles.latestRow}>
+                <span className={styles.latestLabel}>Audit Blob</span>
+                <a
+                  href={`https://aggregator.walrus-testnet.walrus.space/v1/${backend.lastWalrusBlobId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.txLink}
+                >
+                  {backend.lastWalrusBlobId.slice(0, 20)}… View on Walrus →
                 </a>
               </div>
             )}

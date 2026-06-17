@@ -4,6 +4,7 @@ import RiskGauge from '../../components/RiskGauge/RiskGauge';
 import Card from '../../components/Card/Card';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import { RISK_THRESHOLDS, ACTION_LABELS, BACKEND_URL } from '../../constants/contracts';
+import { computeSimScore } from '../../utils/scorer';
 import styles from './Simulation.module.css';
 
 // Simulates the Cetus-style exploit pattern:
@@ -21,16 +22,6 @@ const SCENARIO = [
   { second: 27, priceDevPct: 22,  poolDropPct: 50,  oracleStale: true,  label: 'Threshold: Pause' },
   { second: 30, priceDevPct: 24,  poolDropPct: 58,  oracleStale: true,  label: '' },
 ];
-
-function computeScore({ priceDevPct, poolDropPct, oracleStale }) {
-  let score = 0;
-  if (priceDevPct > 10)  score += 30;
-  else if (priceDevPct > 3) score += Math.round(priceDevPct * 1.5);
-  if (poolDropPct > 20)  score += 35;
-  else if (poolDropPct > 5) score += Math.round(poolDropPct * 1.2);
-  if (oracleStale)       score += 20;
-  return Math.min(score, 100);
-}
 
 function actionForScore(score) {
   if (score >= RISK_THRESHOLDS.PAUSE)      return { code: 3, label: ACTION_LABELS[3] };
@@ -52,7 +43,7 @@ export default function Simulation() {
   const hasFiredRef = useRef(false);
 
   const currentStep = SCENARIO[Math.min(stepIdx, SCENARIO.length - 1)];
-  const score = running || finished ? computeScore(currentStep) : 0;
+  const score = running || finished ? computeSimScore(currentStep) : 0;
   const action = actionForScore(score);
 
   useEffect(() => {
@@ -68,7 +59,7 @@ export default function Simulation() {
           return prev;
         }
         const step  = SCENARIO[next];
-        const sc    = computeScore(step);
+        const sc    = computeSimScore(step);
         const act   = actionForScore(sc);
 
         setHistory((h) => [...h, { second: step.second, score: sc }]);
@@ -94,7 +85,7 @@ export default function Simulation() {
     if (!BACKEND_URL)          return;
 
     const step = SCENARIO[Math.min(stepIdx, SCENARIO.length - 1)];
-    const sc   = computeScore(step);
+    const sc   = computeSimScore(step);
     if (sc < RISK_THRESHOLDS.PAUSE) return;
 
     hasFiredRef.current = true;

@@ -46,6 +46,13 @@ module guardian_ai::test_protocol {
         risk_score:  u8,
     }
 
+    public struct LtvRestored has copy, drop {
+        protocol_id: ID,
+        old_ltv:     u64,
+        new_ltv:     u64,
+        risk_score:  u8,
+    }
+
     public struct PoolDrained has copy, drop {
         protocol_id:  ID,
         new_balance:  u64,
@@ -129,6 +136,34 @@ module guardian_ai::test_protocol {
         });
 
         action_log::append(log, clock, risk_score, action_log::tighten_ltv(), reason);
+    }
+
+    /// Restores LTV to a higher value when risk normalises. Called when risk score < safe threshold.
+    /// new_ltv must be strictly greater than the current ratio (can only restore, not tighten further).
+    public fun restore_ltv(
+        cap:        &GuardianCap,
+        config:     &GuardianConfig,
+        protocol:   &mut Protocol,
+        log:        &mut ActionLog,
+        clock:      &Clock,
+        new_ltv:    u64,
+        risk_score: u8,
+        reason:     String,
+    ) {
+        cap::assert_active(cap, config);
+        assert!(new_ltv > protocol.ltv_ratio && new_ltv <= 10_000, EInvalidLtv);
+
+        let old_ltv = protocol.ltv_ratio;
+        protocol.ltv_ratio = new_ltv;
+
+        event::emit(LtvRestored {
+            protocol_id: object::id(protocol),
+            old_ltv,
+            new_ltv,
+            risk_score,
+        });
+
+        action_log::append(log, clock, risk_score, action_log::log_only(), reason);
     }
 
     // === Admin Override Functions ===

@@ -63,7 +63,7 @@ export default function Docs() {
               <li>Reads the Deepbook on-chain order book (SUI/DBUSDC mid-price) every 4 seconds</li>
               <li>Reads your protocol's on-chain state every 4 seconds</li>
               <li>Computes a weighted risk score from 0–100 using rule-based signals and a statistical AI anomaly detector</li>
-              <li>Autonomously fires on-chain transactions when configured thresholds are crossed</li>
+              <li>Autonomously fires on-chain transactions when configured thresholds are crossed — and autonomously restores LTV when risk normalises</li>
               <li>Sends webhook alerts to Telegram, Discord, or any HTTP endpoint</li>
               <li>Writes every action to an immutable on-chain audit log on your protocol</li>
               <li>Stores full diagnostic snapshots on Walrus for permanent audit records</li>
@@ -154,6 +154,7 @@ export default function Docs() {
               <li>Reads Deepbook SUI/DBUSDC pool mid-price on-chain via <Code>devInspectTransactionBlock</Code> every 4 seconds</li>
               <li>Reads protocol on-chain state every 4 seconds</li>
               <li>Runs a weighted scorer combining rule-based circuit breaker signals with a z-score statistical anomaly detector</li>
+              <li>Calls Claude Haiku to generate a one-sentence AI explanation before each on-chain action — the result is written as the <Code>reason</Code> field in the ActionLog</li>
               <li>Builds and signs Programmable Transaction Blocks using the agent keypair</li>
               <li>Sends webhook notifications for alert-level events</li>
               <li>Stores full diagnostic snapshots on Walrus after every on-chain action</li>
@@ -189,9 +190,16 @@ Sui RPC (chain)  ──►             ──► score ≥ 70  → tighten_ltv t
             <p>
               The risk engine computes a score from 0–100 every 4 seconds. It combines
               rule-based circuit breaker signals with a statistical AI anomaly detector.
-              Scores are additive and capped at 100. Every signal produces a plain-English
-              label that appears in the on-chain ActionLog and Walrus audit blob — every
-              decision is fully auditable and explainable.
+              Scores are additive and capped at 100.
+            </p>
+            <p>
+              When a threshold is crossed and a transaction is about to fire, the engine calls
+              Claude Haiku to generate a single-sentence technical explanation of why the action
+              is necessary. That sentence becomes the <Code>reason</Code> field written into the
+              on-chain <Code>ActionLog</Code> — so every entry in the permanent audit trail
+              carries a human-readable AI interpretation, not just a raw signal string. If the
+              API key is not set, the engine falls back to a concatenation of the active signal
+              labels.
             </p>
 
             <h3 className={styles.h3}>Signals and weights</h3>
@@ -245,6 +253,7 @@ Sui RPC (chain)  ──►             ──► score ≥ 70  → tighten_ltv t
                 <tr><th>Score range</th><th>Action</th><th>On-chain?</th></tr>
               </thead>
               <tbody>
+                <tr><td>0 – 39 (after tighten)</td><td>Restore LTV to pre-crisis baseline</td><td>Yes</td></tr>
                 <tr><td>0 – 49</td><td>Log only</td><td>No</td></tr>
                 <tr><td>50 – 69</td><td>Webhook alert (Telegram / Discord)</td><td>No</td></tr>
                 <tr><td>70 – 84</td><td>Tighten LTV ratio</td><td>Yes</td></tr>
@@ -380,7 +389,8 @@ PAUSED_FIELD=is_paused                # the field name for the paused flag
 POOL_BASELINE=50000000000000000       # expected pool size in MIST (used for the critically-low signal)
 
 # Optional
-SUI_RPC_URL=https://fullnode.testnet.sui.io:443`}</CodeBlock>
+SUI_RPC_URL=https://fullnode.testnet.sui.io:443
+ANTHROPIC_API_KEY=sk-ant-...          # enables Claude-generated reason strings in the ActionLog`}</CodeBlock>
 
             <CodeBlock>{`cd backend
 npm install
@@ -462,9 +472,10 @@ npm run build    # production build`}</CodeBlock>
               <thead><tr><th>Function</th><th>Caller</th><th>Description</th></tr></thead>
               <tbody>
                 <tr><td><Code>pause_protocol</Code></td><td>GuardianCap</td><td>Sets paused = true, writes to ActionLog.</td></tr>
-                <tr><td><Code>tighten_ltv</Code></td><td>GuardianCap</td><td>Reduces LTV ratio, writes to ActionLog.</td></tr>
+                <tr><td><Code>tighten_ltv</Code></td><td>GuardianCap</td><td>Reduces LTV ratio (can only decrease). Saves pre-tighten value for autonomous recovery.</td></tr>
+                <tr><td><Code>restore_ltv</Code></td><td>GuardianCap</td><td>Restores LTV to a higher value when risk normalises (score &lt; 40). Can only increase LTV — cannot tighten further.</td></tr>
                 <tr><td><Code>unpause_protocol</Code></td><td>AdminCap</td><td>Resumes normal operation.</td></tr>
-                <tr><td><Code>reset_ltv</Code></td><td>AdminCap</td><td>Resets LTV to any value after normalisation.</td></tr>
+                <tr><td><Code>reset_ltv</Code></td><td>AdminCap</td><td>Resets LTV to any value. Admin override — not constrained to restore direction.</td></tr>
                 <tr><td><Code>simulate_pool_drain</Code></td><td>AdminCap</td><td>Sets pool balance directly. Used for demo scenarios.</td></tr>
               </tbody>
             </table>
@@ -490,6 +501,7 @@ npm run build    # production build`}</CodeBlock>
   "score": 12,
   "guardian": true,
   "lastTxDigest": "AbCd...",
+  "lastWalrusBlobId": "XyZw...",
   "price": {
     "price": 3.1240, "twap": 3.1180, "deviationPct": 0.19,
     "isStale": false, "staleSecs": 2,
@@ -498,8 +510,10 @@ npm run build    # production build`}</CodeBlock>
   "deepbookPrice": 3.0980,
   "chain": { "poolBalance": 10000000000000, "ltvRatio": 8000, "paused": false, "poolDropPct": 0 },
   "thresholds": { "notify": 50, "tightenLtv": 70, "pause": 85 },
+  "ltvBaselineBps": 8000,
   "config": { "thresholds": {...}, "ltvTightenBps": 500, "webhookUrl": "(set)" }
 }`}</CodeBlock>
+            <p><Code>ltvBaselineBps</Code> is non-null when the guardian has tightened LTV and is tracking a pending autonomous restore. It becomes null again once the restore fires or the demo is reset.</p>
 
             <h3 className={styles.h3}>POST /config</h3>
             <p>Update runtime thresholds, LTV tighten amount, and webhook URL. Takes effect immediately.</p>
@@ -551,10 +565,12 @@ npm run build    # production build`}</CodeBlock>
                 <tr><td><Code>PROTOCOL_MODULE</Code></td><td>No</td><td>Move module containing your circuit breaker functions. Defaults to <Code>test_protocol</Code>.</td></tr>
                 <tr><td><Code>PAUSE_FUNCTION</Code></td><td>No</td><td>Name of your pause function. Defaults to <Code>pause_protocol</Code>.</td></tr>
                 <tr><td><Code>TIGHTEN_LTV_FUNCTION</Code></td><td>No</td><td>Name of your LTV tighten function. Defaults to <Code>tighten_ltv</Code>.</td></tr>
+                <tr><td><Code>RESTORE_LTV_FUNCTION</Code></td><td>No</td><td>Name of your LTV restore function. Defaults to <Code>restore_ltv</Code>. Called autonomously when score drops below 40 after a tighten.</td></tr>
                 <tr><td><Code>POOL_BALANCE_FIELD</Code></td><td>No</td><td>Field name for pool balance in your Protocol object. Defaults to <Code>pool_balance</Code>.</td></tr>
                 <tr><td><Code>LTV_FIELD</Code></td><td>No</td><td>Field name for LTV ratio in your Protocol object. Defaults to <Code>ltv_ratio</Code>.</td></tr>
                 <tr><td><Code>PAUSED_FIELD</Code></td><td>No</td><td>Field name for the paused flag in your Protocol object. Defaults to <Code>paused</Code>.</td></tr>
                 <tr><td><Code>POOL_BASELINE</Code></td><td>No</td><td>Expected pool size in MIST. Used to compute the critically-low signal. Defaults to 10,000 SUI.</td></tr>
+                <tr><td><Code>ANTHROPIC_API_KEY</Code></td><td>No</td><td>Anthropic API key (<Code>sk-ant-...</Code>). When set, each on-chain action's reason string is generated by Claude Haiku. Falls back to raw signal labels if absent.</td></tr>
               </tbody>
             </table>
 
@@ -618,7 +634,8 @@ npm run build    # production build`}</CodeBlock>
             <h3 className={styles.h3}>What the agent can do</h3>
             <ul className={styles.list}>
               <li>Call <Code>pause_protocol</Code> (sets paused flag)</li>
-              <li>Call <Code>tighten_ltv</Code> (reduces LTV ratio)</li>
+              <li>Call <Code>tighten_ltv</Code> (reduces LTV ratio — can only decrease)</li>
+              <li>Call <Code>restore_ltv</Code> (restores LTV when risk normalises — can only increase)</li>
             </ul>
 
             <h3 className={styles.h3}>What the agent cannot do</h3>
@@ -654,10 +671,18 @@ npm run build    # production build`}</CodeBlock>
             <h3 className={styles.h3}>Audit trail</h3>
             <p>
               Every on-chain action writes an entry to the shared <Code>ActionLog</Code> object
-              with a millisecond timestamp, risk score, action type, and reason string.
-              Additionally, the backend stores a full diagnostic blob on Walrus after each
-              action — including Pyth price, TWAP, deviation percentage, z-score, Deepbook
-              mid-price, pool balance, LTV ratio, and all active signals.
+              with a millisecond timestamp, risk score, action type, and a reason string.
+              When <Code>ANTHROPIC_API_KEY</Code> is configured, the reason string is a
+              single-sentence explanation generated by Claude Haiku — making the on-chain audit
+              trail human-readable without any off-chain lookup. The Action Log and Dashboard
+              surface a direct link to the Walrus blob for the most recent action, readable at{' '}
+              <Code>https://aggregator.walrus-testnet.walrus.space/v1/{'<blobId>'}</Code>.
+            </p>
+            <p>
+              The Walrus blob contains the full diagnostic snapshot: Pyth price, TWAP,
+              deviation percentage, z-score, Deepbook mid-price, pool balance, LTV ratio,
+              active signals, the AI-generated reason, and the transaction digest — everything
+              needed to reconstruct exactly why the guardian acted.
             </p>
           </section>
 

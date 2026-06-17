@@ -1,7 +1,10 @@
 import { useActionLog } from '../../hooks/useActionLog';
+import { useBackendStatus } from '../../hooks/useBackendStatus';
 import Card from '../../components/Card/Card';
 import { ACTION_LOG_ID, NETWORK } from '../../constants/contracts';
 import styles from './ActionLog.module.css';
+
+const WALRUS_AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space/v1';
 
 const ACTION_STYLES = {
   'Pause':       styles.actionPause,
@@ -20,6 +23,7 @@ function riskClass(score) {
 
 export default function ActionLog() {
   const { entries, entryCount, isPending } = useActionLog();
+  const { lastWalrusBlobId } = useBackendStatus();
   const reversed = [...entries].reverse();
 
   return (
@@ -38,6 +42,19 @@ export default function ActionLog() {
               View object on Sui Explorer →
             </a>
           </p>
+          {lastWalrusBlobId && (
+            <p className={styles.walrusLine}>
+              Latest audit blob:{' '}
+              <a
+                href={`${WALRUS_AGGREGATOR}/${lastWalrusBlobId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.explorerLink}
+              >
+                {lastWalrusBlobId.slice(0, 20)}… View on Walrus →
+              </a>
+            </p>
+          )}
         </div>
         <span className={styles.count}>{entryCount} entries</span>
       </div>

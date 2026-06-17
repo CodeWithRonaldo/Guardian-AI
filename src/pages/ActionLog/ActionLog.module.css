@@ -32,6 +32,12 @@
 
 .explorerLink:hover { opacity: 0.75; }
 
+.walrusLine {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 .count {
   font-size: 12px;
   font-weight: 600;

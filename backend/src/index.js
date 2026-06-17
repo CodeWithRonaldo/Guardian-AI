@@ -4,16 +4,20 @@ import { CONFIG } from './config.js';
 import { fetchSuiPrice, analysePrice } from './pyth.js';
 import { fetchProtocolState, fetchGuardianEnabled } from './chain.js';
 import { computeRiskScore, actionForScore } from './scorer.js';
-import { executePause, executeTightenLtv, shouldAct, resetLastAction } from './executor.js';
+import { executePause, executeTightenLtv, executeRestoreLtv, shouldAct, resetLastAction } from './executor.js';
 import { storeAuditBlob } from './walrus.js';
 import { fetchDeepbookMidPrice } from './deepbook.js';
 import { log } from './logger.js';
+import { generateAiReason } from './ai.js';
 
 // ── Mutable runtime config ─────────────────────────────────────────────────
 let currentThresholds    = { ...CONFIG.thresholds };
 let currentLtvTightenBps = 500;   // how many bps to reduce LTV when tighten fires
 let currentWebhookUrl    = '';    // POST target for notify-level alerts
 let lastTxDigest         = null;  // digest of the most recent on-chain action
+let lastWalrusBlobId     = null;  // Walrus blob ID for the most recent audit record
+let ltvBaselineBps       = null;  // LTV before the last guardian tighten — null means not tightened
+const LTV_SAFE_THRESHOLD = 40;    // score must drop below this before autonomous restore fires
 
 // ── Polling state ──────────────────────────────────────────────────────────
 let latestPriceAnalysis  = { deviationPct: 0, isStale: false, staleSecs: 0, price: 0, twap: 0, zScore: 0, isAnomaly: false };
@@ -135,6 +139,42 @@ async function decide() {
 
   log.info(`Risk score: ${score} | signals: ${signals.join(', ') || 'none'}`);
 
+  // ── Autonomous LTV recovery ────────────────────────────────────────────────
+  // If the guardian previously tightened LTV and the risk score has now dropped
+  // back below the safe threshold, restore the LTV to the pre-tighten baseline.
+  if (
+    ltvBaselineBps !== null &&
+    score < LTV_SAFE_THRESHOLD &&
+    !latestChainState.paused &&
+    latestChainState.ltvRatio < ltvBaselineBps
+  ) {
+    log.info(`Risk normalised (score ${score}) — attempting autonomous LTV restore to ${ltvBaselineBps} bps.`);
+    executing = true;
+    try {
+      const restoreReason = await generateAiReason(score, 'restore_ltv', ['Risk score normalised below safe threshold — restoring LTV to pre-crisis baseline']) ??
+        `Risk normalised at score ${score} — restoring LTV from ${latestChainState.ltvRatio} to ${ltvBaselineBps} bps.`;
+      const result = await executeRestoreLtv(score, restoreReason, ltvBaselineBps);
+      if (result) {
+        lastTxDigest   = result.digest;
+        ltvBaselineBps = null; // cleared — no pending restore
+        const blobId = await storeAuditBlob({
+          digest: result.digest, action: 'restore_ltv', riskScore: score,
+          reason: restoreReason, signals: [], priceUsd: latestPriceAnalysis.price,
+          priceTwap: latestPriceAnalysis.twap, deviationPct: latestPriceAnalysis.deviationPct,
+          priceZScore: latestPriceAnalysis.zScore, deepbookPriceUsd: latestDeepbookPrice,
+          poolBalance: latestChainState.poolBalance, ltvRatio: latestChainState.ltvRatio,
+          ltvTightenBps: currentLtvTightenBps,
+        });
+        if (blobId) lastWalrusBlobId = blobId;
+      }
+    } catch (err) {
+      log.warn(`LTV restore failed (function may not be deployed): ${err.message}`);
+    } finally {
+      executing = false;
+    }
+    return;
+  }
+
   const action = actionForScore(score, currentThresholds);
 
   if (action === 'log') return;
@@ -150,6 +190,11 @@ async function decide() {
     return;
   }
 
+  // Enhance the raw rule-based reason with an AI-generated explanation.
+  // Falls back to the original reason string if the API key is absent or the call fails.
+  const aiReason = await generateAiReason(score, action, signals);
+  const finalReason = aiReason ?? reason;
+
   executing = true;
   let txDigest = null;
 
@@ -157,22 +202,25 @@ async function decide() {
     let result;
 
     if (action === 'pause') {
-      await sendWebhook(score, `PAUSE triggered — ${reason}`, signals);
-      result = await executePause(score, reason);
+      await sendWebhook(score, `PAUSE triggered — ${finalReason}`, signals);
+      result = await executePause(score, finalReason);
     } else if (action === 'tighten_ltv') {
+      // Record the pre-tighten LTV so we can autonomously restore it when risk drops.
+      if (ltvBaselineBps === null) ltvBaselineBps = latestChainState.ltvRatio;
       const newLtv = Math.max(latestChainState.ltvRatio - currentLtvTightenBps, 1000);
-      await sendWebhook(score, `LTV tightened to ${(newLtv / 100).toFixed(0)}% — ${reason}`, signals);
-      result = await executeTightenLtv(score, reason, newLtv);
+      await sendWebhook(score, `LTV tightened to ${(newLtv / 100).toFixed(0)}% — ${finalReason}`, signals);
+      result = await executeTightenLtv(score, finalReason, newLtv);
     }
 
     if (result) {
-      txDigest     = result.digest;
-      lastTxDigest = result.digest;
-      await storeAuditBlob({
+      txDigest         = result.digest;
+      lastTxDigest     = result.digest;
+      const blobId     = await storeAuditBlob({
         digest:           result.digest,
         action:           result.actionType,
         riskScore:        score,
-        reason,
+        reason:           finalReason,
+        aiReason:         aiReason ?? null,
         signals,
         priceUsd:         latestPriceAnalysis.price,
         priceTwap:        latestPriceAnalysis.twap,
@@ -183,6 +231,7 @@ async function decide() {
         ltvRatio:         latestChainState.ltvRatio,
         ltvTightenBps:    currentLtvTightenBps,
       });
+      if (blobId) lastWalrusBlobId = blobId;
     }
   } catch (err) {
     log.error(`Execution failed: ${err.message}`);
@@ -217,8 +266,10 @@ app.get('/status', (_req, res) => {
     price:          latestPriceAnalysis,
     deepbookPrice:  latestDeepbookPrice,
     chain:          latestChainState,
-    thresholds:     currentThresholds,
+    thresholds:      currentThresholds,
     lastTxDigest,
+    lastWalrusBlobId,
+    ltvBaselineBps,
     config: {
       thresholds:     currentThresholds,
       ltvTightenBps:  currentLtvTightenBps,
@@ -309,6 +360,7 @@ app.post('/demo/inject', async (req, res) => {
 
 app.post('/demo/reset', (_req, res) => {
   resetLastAction();
+  ltvBaselineBps = null;
   res.json({ ok: true });
 });
 

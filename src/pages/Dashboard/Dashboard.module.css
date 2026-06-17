@@ -86,6 +86,40 @@
   font-size: 14px;
 }
 
+/* ── AI anomaly banner ────────────────────────── */
+.anomalyBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--danger-dim, rgba(255,59,92,0.08));
+  border: 1px solid rgba(255,59,92,0.25);
+  border-radius: var(--r-md);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.anomalyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+.anomalyDetail {
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
 /* ── Chart ────────────────────────────────────── */
 .chartCard {}
 

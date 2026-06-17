@@ -28,5 +28,6 @@ export function useBackendStatus() {
     thresholds:      data?.thresholds        ?? null,
     config:          data?.config            ?? null,
     lastTxDigest:    data?.lastTxDigest      ?? null,
+    lastWalrusBlobId: data?.lastWalrusBlobId ?? null,
   };
 }

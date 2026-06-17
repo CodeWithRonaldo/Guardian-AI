@@ -80,6 +80,26 @@ export async function executeTightenLtv(riskScore, reason, newLtv) {
   return submitTx(tx, 'tighten_ltv', riskScore);
 }
 
+export async function executeRestoreLtv(riskScore, reason, newLtv) {
+  const tx = new Transaction();
+
+  tx.moveCall({
+    target:    `${CONFIG.packageId}::${CONFIG.protocolModule}::${CONFIG.restoreLtvFunction}`,
+    arguments: [
+      tx.object(CONFIG.guardianCapId),
+      tx.object(CONFIG.guardianConfigId),
+      tx.object(CONFIG.protocolId),
+      tx.object(CONFIG.actionLogId),
+      tx.object(CLOCK_ID),
+      tx.pure(bcs.u64().serialize(BigInt(newLtv))),
+      tx.pure(bcs.u8().serialize(riskScore)),
+      tx.pure(bcs.string().serialize(reason)),
+    ],
+  });
+
+  return submitTx(tx, 'restore_ltv', riskScore);
+}
+
 async function submitTx(tx, actionType, riskScore) {
   log.info(`Submitting ${actionType} transaction (score=${riskScore})…`);
 

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GuardianAI — Pitch Deck</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #07090f;
+    --surface:  #0d1117;
+    --elevated: #161d2a;
+    --hover:    #1c2638;
+    --border:   #1e2d3d;
+    --borderS:  #131c27;
+    --text:     #e2eaf6;
+    --textS:    #7a93b4;
+    --textM:    #3d5169;
+    --safe:     #0fca82;
+    --safeDim:  #091f17;
+    --warn:     #f5a623;
+    --warnDim:  #221a09;
+    --danger:   #ff3b5c;
+    --dangerDim:#1f0810;
+    --accent:   #3d7ef8;
+    --accentDim:#0f1f45;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* ── DECK ── */
+  #deck {
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .slide {
+    flex: 1; display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 52px 80px;
+    gap: 28px;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+  .center { align-items: center; text-align: center; }
+
+  /* ── NAV BAR ── */
+  #nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .nav-left { display: flex; align-items: center; gap: 12px; }
+  .nav-btn {
+    width: 36px; height: 36px; border-radius: 6px;
+    background: var(--elevated); border: 1px solid var(--border);
+    color: var(--text); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .nav-btn:hover:not(:disabled) { background: var(--hover); }
+  .nav-btn:disabled { opacity: .3; cursor: default; }
+  #counter { font-size: 13px; color: var(--textM); min-width: 56px; text-align: center; }
+  #dots { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); border: none; cursor: pointer;
+    transition: background .15s, transform .15s; padding: 0;
+  }
+  .dot.active { background: var(--accent); transform: scale(1.5); }
+  #slide-label { font-size: 11px; color: var(--textM); letter-spacing: .1em; text-transform: uppercase; min-width: 100px; text-align: right; }
+
+  /* ── PRINT/PDF BUTTON ── */
+  #pdf-btn {
+    padding: 6px 14px; border-radius: 6px;
+    background: var(--accentDim); border: 1px solid var(--accent);
+    color: var(--accent); font-size: 12px; cursor: pointer; font-weight: 600;
+  }
+  #pdf-btn:hover { background: var(--elevated); }
+
+  /* ── TYPOGRAPHY ── */
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .hero-title {
+    font-size: clamp(60px, 9vw, 100px); font-weight: 800;
+    letter-spacing: -.03em; line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--safe) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: clamp(18px, 2.2vw, 26px); color: var(--textS); font-weight: 400; max-width: 640px;
+  }
+  .slide-title {
+    font-size: clamp(26px, 3.2vw, 42px); font-weight: 700;
+    letter-spacing: -.02em; line-height: 1.2; color: var(--text);
+  }
+  .slide-lead { font-size: clamp(13px, 1.4vw, 17px); color: var(--textS); line-height: 1.6; }
+
+  .safe   { color: var(--safe)!important; }
+  .warn   { color: var(--warn)!important; }
+  .danger { color: var(--danger)!important; }
+  .accent { color: var(--accent)!important; }
+  .muted  { color: var(--textM)!important; }
+
+  /* ── BADGES ── */
+  .tracks { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .track-badge {
+    padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 600;
+    letter-spacing: .06em; border: 1px solid var(--border); color: var(--textS);
+  }
+  .live-tag { font-size: 13px; color: var(--textM); margin-top: 6px; }
+  .live-tag a { color: var(--accent); }
+
+  /* ── SLIDE 2: BIG STAT ── */
+  .big-stat { font-size: clamp(52px, 7vw, 80px); font-weight: 800; color: var(--danger); letter-spacing: -.03em; line-height: 1; }
+  .big-stat-sub { font-size: 17px; color: var(--textS); margin-top: 4px; }
+  .quote-box {
+    background: var(--dangerDim); border: 1px solid rgba(255,59,92,.25);
+    border-radius: 10px; padding: 20px 28px;
+    font-size: clamp(14px, 1.4vw, 18px); line-height: 1.65; max-width: 760px;
+  }
+  .timeline { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .t-step {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: var(--elevated); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--textS);
+    text-align: center; min-width: 108px;
+  }
+  .t-step.bad { border-color: rgba(255,59,92,.4); background: var(--dangerDim); color: var(--danger); }
+  .t-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--hover); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--textM);
+  }
+  .t-arrow { color: var(--textM); font-size: 16px; padding: 0 2px; }
+  .t-note { font-size: 13px; color: var(--textM); }
+
+  /* ── SLIDE 3: GAP ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .gap-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .gap-card.bad  { border-color: rgba(255,59,92,.3); }
+  .gap-card.good { border-color: rgba(15,202,130,.3); }
+  .gap-card-title { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .gap-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--textS); }
+  .gap-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+  .gap-time { font-size: 22px; font-weight: 700; margin-top: 6px; }
+
+  /* ── SLIDE 4: SOLUTION ── */
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .feat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .feat-icon { font-size: 26px; }
+  .feat-title { font-size: 16px; font-weight: 700; }
+  .feat-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .feat-list li { font-size: 12.5px; color: var(--textS); display: flex; gap: 8px; }
+  .feat-list li::before { content: '·'; color: var(--textM); flex-shrink: 0; }
+
+  /* ── SLIDE 5: RISK ENGINE ── */
+  .sig-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sig-table th {
+    text-align: left; padding: 7px 12px; font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--textM);
+    border-bottom: 1px solid var(--border);
+  }
+  .sig-table td { padding: 7px 12px; border-bottom: 1px solid var(--borderS); vertical-align: middle; }
+  .sig-table tr:last-child td { border-bottom: none; }
+  .w-bar { display: flex; align-items: center; gap: 10px; }
+  .w-fill { height: 5px; border-radius: 3px; }
+  .w-num { font-weight: 700; font-size: 13px; min-width: 24px; text-align: right; }
+  .ai-tag {
+    display: inline-block; padding: 1px 7px; background: var(--accentDim);
+    color: var(--accent); border-radius: 3px; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; margin-left: 6px;
+  }
+  .sui-tag {
+    display: inline-block; padding: 1px 7px; background: rgba(15,202,130,.08);
+    color: var(--safe); border-radius: 3px; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; margin-left: 6px;
+  }
+
+  /* ── SLIDE 6: WHY SUI ── */
+  .four-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sui-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .sui-card-title { font-size: 14px; font-weight: 700; color: var(--safe); display: flex; align-items: center; gap: 8px; }
+  .sui-card-body { font-size: 13px; color: var(--textS); line-height: 1.6; }
+
+  /* ── SLIDE 7: ARCHITECTURE ── */
+  .arch-stack { display: flex; flex-direction: column; gap: 0; max-width: 740px; }
+  .arch-layer {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 24px;
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+  .arch-num { font-size: 24px; font-weight: 800; color: var(--border); min-width: 30px; line-height: 1; margin-top: 2px; }
+  .arch-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .arch-items { font-size: 12px; color: var(--textM); line-height: 1.8; }
+  .arch-conn { display: flex; flex-direction: column; align-items: center; padding: 2px 0; }
+  .arch-conn-line { width: 2px; height: 20px; background: var(--border); }
+  .arch-conn-label {
+    font-size: 10px; color: var(--textM); letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 8px; background: var(--elevated); border-radius: 4px; border: 1px solid var(--border);
+  }
+
+  /* ── SLIDE 8: SECURITY ── */
+  .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .sec-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 22px;
+  }
+  .sec-card-title { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+  .sec-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .sec-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--textS); }
+  .kill-box {
+    background: var(--elevated); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 20px; font-size: 13px; color: var(--textS);
+    line-height: 1.6; grid-column: 1 / -1;
+  }
+  .ic {
+    background: var(--accentDim); color: var(--accent);
+    padding: 1px 6px; border-radius: 4px;
+    font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 12px;
+  }
+
+  /* ── SLIDE 9: INTEGRATION ── */
+  .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px; display: flex; gap: 14px;
+  }
+  .step-num { font-size: 28px; font-weight: 800; color: var(--border); line-height: 1; flex-shrink: 0; min-width: 28px; }
+  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .step-body { font-size: 12.5px; color: var(--textM); line-height: 1.6; }
+  .no-code {
+    grid-column: 1 / -1; text-align: center; font-size: 13px; font-weight: 600;
+    color: var(--safe); padding: 10px; background: var(--safeDim);
+    border-radius: 6px; border: 1px solid rgba(15,202,130,.2);
+  }
+
+  /* ── SLIDE 10: BUILT ── */
+  .built-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .built-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 11px 16px; font-size: 13px;
+  }
+  .built-check { color: var(--safe); font-weight: 700; flex-shrink: 0; }
+  .built-label { color: var(--text); font-weight: 500; }
+  .built-sub { color: var(--textM); font-size: 11px; margin-left: auto; text-align: right; }
+
+  /* ── SLIDE 11: TRACKS ── */
+  .req-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .req-table th {
+    text-align: left; padding: 8px 14px; font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--textM);
+    border-bottom: 1px solid var(--border);
+  }
+  .req-table td { padding: 9px 14px; border-bottom: 1px solid var(--borderS); vertical-align: top; }
+  .req-table tr:last-child td { border-bottom: none; }
+  .req-check { color: var(--safe); font-weight: 700; font-size: 15px; }
+  .req-req { color: var(--text); font-weight: 500; }
+  .req-how { color: var(--textS); }
+
+  /* ── SLIDE 12: CLOSE ── */
+  .close-hero {
+    font-size: clamp(22px, 3vw, 38px); font-weight: 700; line-height: 1.3;
+    letter-spacing: -.02em; max-width: 720px; text-align: center;
+  }
+  .close-stats { display: flex; gap: 48px; justify-content: center; flex-wrap: wrap; }
+  .close-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .close-stat-num { font-size: 40px; font-weight: 800; letter-spacing: -.02em; }
+  .close-stat-label { font-size: 12px; color: var(--textM); text-align: center; line-height: 1.4; }
+  .close-url {
+    font-size: 18px; font-weight: 600; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 10px; padding: 12px 32px;
+  }
+  .close-sub { font-size: 14px; color: var(--textM); }
+
+  /* ── PRINT / PDF ── */
+  @media print {
+    html, body { background: #07090f; overflow: visible; height: auto; }
+    #deck { height: auto; overflow: visible; }
+    #nav { display: none; }
+    .slide { display: flex !important; page-break-after: always; break-after: page; min-height: 100vh; }
+    .slide:last-of-type { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+  <!-- SLIDE 1: TITLE -->
+  <div class="slide center active" data-label="Title">
+    <div class="eyebrow">Sui Overflow 2026 · Agentic Web + Walrus</div>
+    <div class="hero-title">GuardianAI</div>
+    <div class="hero-sub">Autonomous Risk Guardian for Sui DeFi Protocols</div>
+    <div class="tracks">
+      <span class="track-badge">Agentic Web — Autonomous Risk Guardian</span>
+      <span class="track-badge">Walrus</span>
+    </div>
+    <div class="live-tag">
+      Live on Sui Testnet ·
+      <a href="https://guardian-ai.vercel.app" target="_blank">guardian-ai.vercel.app</a>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: THE PROBLEM -->
+  <div class="slide" data-label="Problem">
+    <div class="eyebrow">The Problem</div>
+    <div class="big-stat">$60,000,000</div>
+    <div class="big-stat-sub">drained from Cetus DEX on Sui — October 2025</div>
+    <div class="quote-box">
+      "The contracts were not broken. The code was fine.
+      <span class="danger"> The response was too slow.</span>
+      By the time the team could act, the liquidity was already gone."
+    </div>
+    <div class="timeline">
+      <div class="t-step"><div class="t-num">1</div><span>Notice exploit</span></div>
+      <div class="t-arrow">→</div>
+      <div class="t-step"><div class="t-num">2</div><span>Alert the team</span></div>
+      <div class="t-arrow">→</div>
+      <div class="t-step"><div class="t-num">3</div><span>Verify incident</span></div>
+      <div class="t-arrow">→</div>
+      <div class="t-step"><div class="t-num">4</div><span>Connect wallet</span></div>
+      <div class="t-arrow">→</div>
+      <div class="t-step bad"><div class="t-num">5</div><span>Submit tx</span></div>
+    </div>
+    <div class="t-note">
+      Average human response chain: <span class="danger">10–30 minutes.</span>
+      Most damage happens in the first <span class="danger">4 minutes.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: THE GAP -->
+  <div class="slide" data-label="The Gap">
+    <div class="eyebrow">The Gap</div>
+    <div class="slide-title">
+      Every Protocol Has an Emergency Pause Button.
+      <span class="danger"> None of Them Fire Automatically.</span>
+    </div>
+    <div class="two-col">
+      <div class="gap-card bad">
+        <div class="gap-card-title danger">Manual Response</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--danger)"></div>Someone has to notice it first</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--danger)"></div>Team has to be reachable</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--danger)"></div>Incident has to be verified</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--danger)"></div>Right wallet has to be available</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--danger)"></div>Transaction lands on-chain</div>
+        <div class="gap-time danger">10 – 30 minutes</div>
+      </div>
+      <div class="gap-card good">
+        <div class="gap-card-title safe">GuardianAI</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--safe)"></div>Detects anomalies in 3 seconds</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--safe)"></div>Scores risk every 4 seconds</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--safe)"></div>No human decision needed</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--safe)"></div>No wallet connection needed</div>
+        <div class="gap-item"><div class="gap-dot" style="background:var(--safe)"></div>PTB submitted autonomously</div>
+        <div class="gap-time safe">4 – 8 seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: SOLUTION -->
+  <div class="slide" data-label="Solution">
+    <div class="eyebrow">The Solution</div>
+    <div class="slide-title">Detect. Score. Act. All On-Chain. No Human In The Loop.</div>
+    <div class="three-col">
+      <div class="feat-card" style="border-color:rgba(61,126,248,.3)">
+        <div class="feat-icon">👁</div>
+        <div class="feat-title accent">Watch</div>
+        <ul class="feat-list">
+          <li>Pyth oracle price every 3 seconds</li>
+          <li>Deepbook DEX mid-price every 4 seconds</li>
+          <li>Protocol liquidity pool every 4 seconds</li>
+          <li>Staleness of every data source</li>
+        </ul>
+      </div>
+      <div class="feat-card" style="border-color:rgba(245,166,35,.3)">
+        <div class="feat-icon">🧠</div>
+        <div class="feat-title warn">Score</div>
+        <ul class="feat-list">
+          <li>Weighted risk signals 0–100</li>
+          <li>Z-score AI anomaly detection</li>
+          <li>DEX vs oracle divergence signal</li>
+          <li>Every signal fully auditable</li>
+        </ul>
+      </div>
+      <div class="feat-card" style="border-color:rgba(15,202,130,.3)">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title safe">Act</div>
+        <ul class="feat-list">
+          <li>Tighten LTV ratio on-chain (score ≥70)</li>
+          <li>Pause protocol on-chain (score ≥85)</li>
+          <li>Signed PTB by agent keypair</li>
+          <li>Every action logged to ActionLog</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: RISK ENGINE -->
+  <div class="slide" data-label="Risk Engine">
+    <div class="eyebrow">Risk Intelligence</div>
+    <div class="slide-title">Multi-Signal AI Engine — Every Decision Explainable</div>
+    <table class="sig-table">
+      <thead>
+        <tr><th>Signal</th><th>Trigger</th><th>Weight</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Price deviation (large)</td>
+          <td class="muted">Pyth price &gt;10% from TWAP</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:55px;background:var(--warn)"></div><span class="w-num warn">30</span></div></td>
+        </tr>
+        <tr>
+          <td>Price deviation (small)</td>
+          <td class="muted">Pyth price 3–10% from TWAP</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:28px;background:var(--warn)"></div><span class="w-num warn">15</span></div></td>
+        </tr>
+        <tr>
+          <td>AI anomaly <span class="ai-tag">AI</span></td>
+          <td class="muted">Price &gt;2.5σ from 60s rolling mean (z-score)</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:36px;background:var(--accent)"></div><span class="w-num accent">20</span></div></td>
+        </tr>
+        <tr>
+          <td>DEX-Oracle divergence <span class="sui-tag">Deepbook</span></td>
+          <td class="muted">Deepbook vs Pyth &gt;20% apart</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:46px;background:var(--safe)"></div><span class="w-num safe">25</span></div></td>
+        </tr>
+        <tr>
+          <td>Oracle stale</td>
+          <td class="muted">No Pyth update in &gt;30 seconds</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:36px;background:var(--warn)"></div><span class="w-num warn">20</span></div></td>
+        </tr>
+        <tr>
+          <td>Pool drain (critical)</td>
+          <td class="muted">Pool dropped &gt;50% this interval</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:100px;background:var(--danger)"></div><span class="w-num danger">55</span></div></td>
+        </tr>
+        <tr>
+          <td>Pool drain (large)</td>
+          <td class="muted">Pool dropped &gt;20% this interval</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:64px;background:var(--danger)"></div><span class="w-num danger">35</span></div></td>
+        </tr>
+        <tr>
+          <td>Pool critically low</td>
+          <td class="muted">Balance ≤5% of baseline (last resort)</td>
+          <td><div class="w-bar"><div class="w-fill" style="width:164px;background:var(--danger)"></div><span class="w-num danger">90</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="slide-lead" style="font-size:12px">
+      Scores are additive, capped at 100. Score ≥ 85 → autonomous protocol pause.
+      The z-score adapts to market volatility — a 3% move can be normal or anomalous depending on recent price history.
+      When a threshold is crossed, <strong style="color:var(--accent)">Claude Haiku generates a one-sentence explanation</strong> that is written as the
+      <code style="font-size:11px;background:var(--elevated);padding:1px 5px;border-radius:3px">reason</code> field in the on-chain ActionLog —
+      making every entry in the permanent audit trail human-readable without any off-chain lookup.
+    </div>
+  </div>
+
+  <!-- SLIDE 6: WHY SUI -->
+  <div class="slide" data-label="Why Sui">
+    <div class="eyebrow">Why Sui</div>
+    <div class="slide-title">Sui Is Load-Bearing — Not Bolted On</div>
+    <div class="four-grid">
+      <div class="sui-card">
+        <div class="sui-card-title">🔐 Move Capability Objects</div>
+        <div class="sui-card-body">GuardianCap is a Move object. Every circuit breaker requires it as a parameter. The Move VM enforces the agent's scope — not application code. The agent can't move funds, upgrade contracts, or unpause. <strong>Sui makes the AI safer</strong> — its permissions are type-enforced at the VM level, not in application logic that could be bypassed.</div>
+      </div>
+      <div class="sui-card">
+        <div class="sui-card-title">⚙️ Programmable Transaction Blocks</div>
+        <div class="sui-card-body">Every guardian action is a PTB — composable, atomic, signed by the agent keypair. The decision-to-execution chain is a single transaction. <strong>Sui makes the AI more composable</strong> — multiple protocol operations can be batched into one atomic PTB, reducing gas and preventing partial-state exploits.</div>
+      </div>
+      <div class="sui-card">
+        <div class="sui-card-title">📋 On-Chain ActionLog + AI Reasons</div>
+        <div class="sui-card-body">A shared, append-only Sui object stores every action with a Claude-generated plain-English reason. <strong>Sui makes the AI auditable</strong> — the audit trail is trustless and permanent, not stored in a centralized database the operator controls.</div>
+      </div>
+      <div class="sui-card">
+        <div class="sui-card-title">📊 Deepbook + Walrus</div>
+        <div class="sui-card-body">Deepbook provides a native on-chain DEX price — a Sui-specific signal unavailable on any other chain. Walrus stores full diagnostic blobs after every action. <strong>Sui makes the AI better</strong> — the DEX-Oracle divergence signal only exists because Deepbook is native to Sui.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: ARCHITECTURE -->
+  <div class="slide" data-label="Architecture">
+    <div class="eyebrow">Architecture</div>
+    <div class="slide-title">Three Layers — Each Independently Auditable</div>
+    <div class="arch-stack">
+      <div class="arch-layer">
+        <div class="arch-num">1</div>
+        <div>
+          <div class="arch-title">Move Contracts — On-Chain Trust Layer</div>
+          <div class="arch-items">guardian_ai::cap — GuardianCap (agent permissions) + AdminCap (human override)  ·  guardian_ai::action_log — shared append-only audit trail  ·  Type-enforced permissions at the Move VM level</div>
+        </div>
+      </div>
+      <div class="arch-conn">
+        <div class="arch-conn-line"></div>
+        <div class="arch-conn-label">PTB calls</div>
+        <div class="arch-conn-line"></div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-num">2</div>
+        <div>
+          <div class="arch-title">Risk Engine — Off-Chain Autonomous Agent</div>
+          <div class="arch-items">Node.js backend  ·  Pyth Hermes API (3s) + Deepbook on-chain (4s) + Sui RPC (4s)  ·  Z-score AI anomaly detection + weighted rule-based signals  ·  PTB builder · agent keypair signer · Walrus blob storage</div>
+        </div>
+      </div>
+      <div class="arch-conn">
+        <div class="arch-conn-line"></div>
+        <div class="arch-conn-label">4s polling</div>
+        <div class="arch-conn-line"></div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-num">3</div>
+        <div>
+          <div class="arch-title">Dashboard — Visibility and Control</div>
+          <div class="arch-items">React + Vite  ·  Live risk gauge + continuous score history chart  ·  Action Log (reads on-chain) · Configuration panel (live threshold changes)  ·  Guardian kill switch + protocol unpause via AdminCap</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: SECURITY -->
+  <div class="slide" data-label="Security">
+    <div class="eyebrow">Security Model</div>
+    <div class="slide-title">Narrow Permissions. Instant Kill Switch. Full Audit Trail.</div>
+    <div class="sec-grid">
+      <div class="sec-card" style="border-color:rgba(15,202,130,.25)">
+        <div class="sec-card-title safe">What the agent CAN do</div>
+        <ul class="sec-list">
+          <li><span class="safe">✓</span><span>Pause the protocol (sets paused flag)</span></li>
+          <li><span class="safe">✓</span><span>Tighten the LTV ratio (reduce only, never raise)</span></li>
+          <li><span class="safe">✓</span><span>Append to ActionLog with timestamp and reason</span></li>
+        </ul>
+      </div>
+      <div class="sec-card" style="border-color:rgba(255,59,92,.25)">
+        <div class="sec-card-title danger">What the agent CANNOT do</div>
+        <ul class="sec-list">
+          <li><span class="danger">✕</span><span>Move or withdraw any funds</span></li>
+          <li><span class="danger">✕</span><span>Upgrade contracts</span></li>
+          <li><span class="danger">✕</span><span>Transfer ownership of any object</span></li>
+          <li><span class="danger">✕</span><span>Unpause the protocol</span></li>
+          <li><span class="danger">✕</span><span>Call any function not accepting GuardianCap</span></li>
+        </ul>
+      </div>
+      <div class="kill-box">
+        <strong style="color:var(--text)">Kill switch:</strong>
+        The protocol team holds <span class="ic">AdminCap</span>. Calling
+        <span class="ic">cap::disable</span> sets <span class="ic" style="color:var(--safe)">GuardianConfig.enabled = false</span>.
+        Every circuit breaker calls <span class="ic">assert_active</span> at the top — it aborts instantly.
+        One transaction. No code change. Permanent record in the audit trail. One-click in the dashboard.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: INTEGRATION -->
+  <div class="slide" data-label="Integration">
+    <div class="eyebrow">Integration</div>
+    <div class="slide-title">Any Sui Lending Protocol. No Architecture Changes.</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Add two functions to your Move contract</div>
+          <div class="step-body">pause_protocol and tighten_ltv — both accept GuardianCap as a parameter. Your existing contract logic stays unchanged. Integration is additive.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Run one-time guardian initialisation</div>
+          <div class="step-body">One CLI command creates GuardianCap (agent wallet), AdminCap (protocol team), and GuardianConfig (shared). Another creates the ActionLog shared object.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Configure the backend via env vars</div>
+          <div class="step-body">PROTOCOL_MODULE, PAUSE_FUNCTION, POOL_BALANCE_FIELD — match these to your contract's module and field names. No source code changes needed.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Deploy and tune thresholds live</div>
+          <div class="step-body">The Configuration panel lets you adjust Notify, Tighten LTV, and Pause thresholds in real time — no backend restart. Add a Telegram or Discord webhook for instant alerts.</div>
+        </div>
+      </div>
+      <div class="no-code">
+        Existing protocol logic is untouched. Integration is purely additive.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: WHAT'S BUILT -->
+  <div class="slide" data-label="Proof of Work">
+    <div class="eyebrow">Proof of Work</div>
+    <div class="slide-title">Fully Deployed on Sui Testnet. Not a Prototype.</div>
+    <div class="built-grid">
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Move contracts (3 modules)</span><span class="built-sub">Deployed · Sui Testnet</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Pyth live price feed</span><span class="built-sub">Real SUI/USD · 3s</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Deepbook DEX price feed</span><span class="built-sub">On-chain mid-price · 4s</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">AI z-score anomaly detector</span><span class="built-sub">Active every poll</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">DEX-Oracle divergence signal</span><span class="built-sub">Deepbook vs Pyth</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Autonomous PTB execution</span><span class="built-sub">Real testnet transactions</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">On-chain ActionLog</span><span class="built-sub">Shared object · real entries</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Walrus audit blobs</span><span class="built-sub">Written after every action</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">React dashboard</span><span class="built-sub">Live · Vercel</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Simulation demo</span><span class="built-sub">Fires real testnet tx</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Claude AI reason strings</span><span class="built-sub">Written to ActionLog on-chain</span></div>
+      <div class="built-item"><span class="built-check">✓</span><span class="built-label">Walrus blob UI link</span><span class="built-sub">Dashboard + Action Log</span></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: TRACKS -->
+  <div class="slide" data-label="Track Requirements">
+    <div class="eyebrow">Hackathon Tracks</div>
+    <div class="slide-title">
+      Agentic Web — Autonomous Risk Guardian <span class="safe">✓</span>
+      &nbsp;&nbsp;&nbsp;Walrus <span class="safe">✓</span>
+    </div>
+    <table class="req-table">
+      <thead>
+        <tr><th></th><th>Requirement</th><th>How GuardianAI Satisfies It</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Live price feed</td><td class="req-how">Pyth Hermes API (3s) + Deepbook on-chain order book (4s)</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Visible AI risk score</td><td class="req-how">Live gauge + continuous score history chart on dashboard</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Autonomous on-chain action</td><td class="req-how">tighten_ltv (score ≥70) and pause_protocol (score ≥85) via PTB</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Move policy object</td><td class="req-how">GuardianCap — VM-enforced agent permissions, not application logic</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Human override</td><td class="req-how">AdminCap disable/enable + protocol unpause, one-click in dashboard</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Every action logged on-chain</td><td class="req-how">Shared ActionLog object — timestamped, risk score, Claude-generated AI reason string</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Reversible</td><td class="req-how">unpause_protocol callable by AdminCap at any time</td></tr>
+        <tr><td><span class="req-check">✓</span></td><td class="req-req">Walrus track</td><td class="req-how">Full diagnostic snapshots on Walrus after every guardian action</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SLIDE 12: CLOSE -->
+  <div class="slide center" data-label="Close">
+    <div class="eyebrow">GuardianAI</div>
+    <div class="close-hero">
+      The Cetus exploit response took <span class="danger">30 minutes</span>.<br/>
+      GuardianAI takes <span class="safe">8 seconds</span>.
+    </div>
+    <div class="close-stats">
+      <div class="close-stat">
+        <div class="close-stat-num accent">3</div>
+        <div class="close-stat-label">Move modules<br/>deployed on testnet</div>
+      </div>
+      <div class="close-stat">
+        <div class="close-stat-num safe">2</div>
+        <div class="close-stat-label">Live price sources<br/>Pyth + Deepbook</div>
+      </div>
+      <div class="close-stat">
+        <div class="close-stat-num warn">8</div>
+        <div class="close-stat-label">Risk signals<br/>per scoring cycle</div>
+      </div>
+      <div class="close-stat">
+        <div class="close-stat-num danger">0</div>
+        <div class="close-stat-label">Humans needed<br/>to fire a pause</div>
+      </div>
+    </div>
+    <div class="close-url">guardian-ai.vercel.app</div>
+    <div class="close-sub">Autonomous protection for Sui DeFi — built with Sui, not on top of it.</div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- NAV BAR -->
+<div id="nav">
+  <div class="nav-left">
+    <button class="nav-btn" id="prev-btn" onclick="go(-1)">←</button>
+    <span id="counter">1 / 12</span>
+    <button class="nav-btn" id="next-btn" onclick="go(1)">→</button>
+  </div>
+  <div id="dots"></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="slide-label"></span>
+    <button id="pdf-btn" onclick="window.print()">Export PDF</button>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const dotsEl  = document.getElementById('dots');
+  const labelEl = document.getElementById('slide-label');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  let current = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.title = slides[i].dataset.label || '';
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    labelEl.textContent = slides[current].dataset.label || '';
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === slides.length - 1;
+  }
+
+  function go(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ')  { e.preventDefault(); go(1);  }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); go(-1); }
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>
