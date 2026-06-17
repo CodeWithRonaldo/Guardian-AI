@@ -4,7 +4,7 @@ import Card from '../../components/Card/Card';
 import { ACTION_LOG_ID, NETWORK } from '../../constants/contracts';
 import styles from './ActionLog.module.css';
 
-const WALRUS_AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space/v1';
+const WALRUS_AGGREGATOR = 'https://aggregator.walrus-testnet.walrus.space/v1/blobs';
 
 const ACTION_STYLES = {
   'Pause':       styles.actionPause,

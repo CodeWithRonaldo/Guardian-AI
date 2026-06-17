@@ -185,7 +185,7 @@ export default function Dashboard() {
               <div className={styles.latestRow}>
                 <span className={styles.latestLabel}>Audit Blob</span>
                 <a
-                  href={`https://aggregator.walrus-testnet.walrus.space/v1/${backend.lastWalrusBlobId}`}
+                  href={`https://aggregator.walrus-testnet.walrus.space/v1/blobs/${backend.lastWalrusBlobId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.txLink}
