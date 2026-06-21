@@ -49,15 +49,16 @@ async function sendWebhook(score, reason, signals) {
                      + `*Signals:*\n${signals.map(s => `▸ ${s}`).join('\n')}\n\n`
                      + `_${timestamp}_`;
 
-      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
         signal:  AbortSignal.timeout(6_000),
       });
+      if (!res.ok) log.warn(`Telegram API rejected message: HTTP ${res.status} — ${await res.text()}`);
 
     } else if (currentWebhookUrl.includes('discord.com/api/webhooks')) {
-      await fetch(currentWebhookUrl, {
+      const res = await fetch(currentWebhookUrl, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -71,20 +72,23 @@ async function sendWebhook(score, reason, signals) {
         }),
         signal: AbortSignal.timeout(6_000),
       });
+      if (!res.ok) log.warn(`Discord webhook rejected: HTTP ${res.status} — ${await res.text()}`);
 
     } else {
       // Generic JSON — works with Slack, n8n, Make, any HTTP endpoint
-      await fetch(currentWebhookUrl, {
+      const res = await fetch(currentWebhookUrl, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ source: 'GuardianAI', riskScore: score, reason, signals, timestamp }),
         signal:  AbortSignal.timeout(6_000),
       });
+      if (!res.ok) log.warn(`Webhook endpoint rejected: HTTP ${res.status} — ${await res.text()}`);
     }
 
     log.info('Webhook notification sent.');
   } catch (err) {
-    log.warn(`Webhook failed: ${err.message}`);
+    const cause = err.cause ? ` — cause: ${err.cause.message ?? err.cause}` : '';
+    log.warn(`Webhook failed: ${err.message}${cause}`);
   }
 }
 

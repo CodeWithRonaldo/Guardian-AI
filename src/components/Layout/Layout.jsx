@@ -15,7 +15,7 @@ export default function Layout() {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <span className={styles.brandIcon}>⬡</span>
+          <img src="/logo-icon.svg" alt="GuardianAI" className={styles.brandIcon} />
           <div>
             <div className={styles.brandName}>GuardianAI</div>
             <div className={styles.brandSub}>Sui Testnet</div>

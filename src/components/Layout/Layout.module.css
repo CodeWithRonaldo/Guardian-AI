@@ -27,9 +27,9 @@
 }
 
 .brandIcon {
-  font-size: 24px;
-  color: var(--accent);
-  line-height: 1;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .brandName {
